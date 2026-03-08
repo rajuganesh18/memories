@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
-from app.routers import auth
+from app.routers import admin, auth, templates
 
 app = FastAPI(
     title="Memories - Album E-Commerce API",
@@ -22,6 +22,8 @@ app.add_middleware(
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
 app.include_router(auth.router)
+app.include_router(templates.router)
+app.include_router(admin.router)
 
 
 @app.get("/api/v1/health")

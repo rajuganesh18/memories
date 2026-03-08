@@ -4,11 +4,23 @@ import Layout from './components/layout/Layout';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import TemplateGallery from './pages/TemplateGallery';
+import TemplateDetail from './pages/TemplateDetail';
+import AdminDashboard from './pages/admin/Dashboard';
+import ManageTemplates from './pages/admin/ManageTemplates';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="p-8 text-center">Loading...</div>;
   if (!user) return <Navigate to="/login" />;
+  return children;
+}
+
+function AdminRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="p-8 text-center">Loading...</div>;
+  if (!user) return <Navigate to="/login" />;
+  if (!user.is_admin) return <Navigate to="/" />;
   return children;
 }
 
@@ -26,22 +38,18 @@ export default function App() {
         <Route index element={<Home />} />
         <Route
           path="login"
-          element={
-            <GuestRoute>
-              <Login />
-            </GuestRoute>
-          }
+          element={<GuestRoute><Login /></GuestRoute>}
         />
         <Route
           path="register"
-          element={
-            <GuestRoute>
-              <Register />
-            </GuestRoute>
-          }
+          element={<GuestRoute><Register /></GuestRoute>}
         />
-        {/* Placeholder routes for future phases */}
-        <Route path="templates" element={<div className="p-8 text-center text-gray-500">Template Gallery - Coming in Phase 2</div>} />
+
+        {/* Templates */}
+        <Route path="templates" element={<TemplateGallery />} />
+        <Route path="templates/:id" element={<TemplateDetail />} />
+
+        {/* Protected routes */}
         <Route
           path="cart"
           element={
@@ -56,6 +64,24 @@ export default function App() {
             <ProtectedRoute>
               <div className="p-8 text-center text-gray-500">Dashboard - Coming in Phase 5</div>
             </ProtectedRoute>
+          }
+        />
+
+        {/* Admin routes */}
+        <Route
+          path="admin"
+          element={<AdminRoute><AdminDashboard /></AdminRoute>}
+        />
+        <Route
+          path="admin/templates"
+          element={<AdminRoute><ManageTemplates /></AdminRoute>}
+        />
+        <Route
+          path="admin/orders"
+          element={
+            <AdminRoute>
+              <div className="p-8 text-center text-gray-500">Order Management - Coming in Phase 5</div>
+            </AdminRoute>
           }
         />
       </Route>
