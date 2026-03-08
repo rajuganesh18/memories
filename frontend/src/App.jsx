@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import TemplateGallery from './pages/TemplateGallery';
 import TemplateDetail from './pages/TemplateDetail';
+import AlbumBuilder from './pages/AlbumBuilder';
 import AdminDashboard from './pages/admin/Dashboard';
 import ManageTemplates from './pages/admin/ManageTemplates';
 
@@ -48,6 +49,12 @@ export default function App() {
         {/* Templates */}
         <Route path="templates" element={<TemplateGallery />} />
         <Route path="templates/:id" element={<TemplateDetail />} />
+
+        {/* Album builder */}
+        <Route
+          path="albums/create"
+          element={<ProtectedRoute><AlbumBuilder /></ProtectedRoute>}
+        />
 
         {/* Protected routes */}
         <Route

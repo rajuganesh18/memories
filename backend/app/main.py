@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
-from app.routers import admin, auth, templates
+from app.routers import admin, albums, auth, templates
 
 app = FastAPI(
     title="Memories - Album E-Commerce API",
@@ -23,6 +23,7 @@ app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads"
 
 app.include_router(auth.router)
 app.include_router(templates.router)
+app.include_router(albums.router)
 app.include_router(admin.router)
 
 
