@@ -18,6 +18,7 @@ import Profile from './pages/dashboard/Profile';
 import AdminDashboard from './pages/admin/Dashboard';
 import ManageTemplates from './pages/admin/ManageTemplates';
 import ManageOrders from './pages/admin/ManageOrders';
+import NotFound from './pages/NotFound';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -104,6 +105,9 @@ export default function App() {
           path="admin/orders"
           element={<AdminRoute><ManageOrders /></AdminRoute>}
         />
+
+        {/* 404 */}
+        <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
   );
