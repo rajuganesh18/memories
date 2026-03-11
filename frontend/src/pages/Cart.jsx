@@ -1,9 +1,15 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { getAlbum } from '../api/albums';
+import { getTemplate } from '../api/templates';
 import toast from 'react-hot-toast';
+import CanvasAlbumPage from '../components/albums/CanvasAlbumPage';
 
 export default function Cart() {
   const { cart, loading, updateItem, removeItem, clearCartItems } = useCart();
+  const [preview, setPreview] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   if (loading) return <div className="p-8 text-center">Loading cart...</div>;
 
@@ -53,6 +59,29 @@ export default function Cart() {
     }
   };
 
+  const handlePreview = async (album) => {
+    const templateId = album.template_size?.template?.id;
+    if (!templateId) {
+      toast.error('Template info not available');
+      return;
+    }
+    setPreviewLoading(true);
+    try {
+      const [albumRes, templateRes] = await Promise.all([
+        getAlbum(album.id),
+        getTemplate(templateId),
+      ]);
+      setPreview({
+        album: albumRes.data,
+        pageLayouts: templateRes.data.page_layouts || [],
+      });
+    } catch {
+      toast.error('Failed to load preview');
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
@@ -64,32 +93,42 @@ export default function Cart() {
 
       <div className="space-y-4">
         {items.map((item) => (
-          <div key={item.id} className="flex items-center gap-4 bg-white p-4 rounded-lg shadow-sm border">
-            <div className="flex-1">
-              <h3 className="font-semibold">{item.album?.title || 'Album'}</h3>
-              <p className="text-sm text-gray-500">
-                {item.album?.template_size?.template?.name} &middot; {item.album?.template_size?.size?.label || ''} &middot; {item.album?.photos?.length || 0} photos
-              </p>
-              <p className="text-sm text-gray-500">Status: {item.album?.status}</p>
+          <div key={item.id} className="bg-white p-4 rounded-lg shadow-sm border">
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <h3 className="font-semibold">{item.album?.title || 'Album'}</h3>
+                <p className="text-sm text-gray-500">
+                  {item.album?.template_size?.template?.name} &middot; {item.album?.template_size?.size?.label || ''} &middot; {item.album?.photos?.length || 0} photos
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                  className="w-8 h-8 rounded border flex items-center justify-center hover:bg-gray-100"
+                >
+                  -
+                </button>
+                <span className="w-8 text-center">{item.quantity}</span>
+                <button
+                  onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                  className="w-8 h-8 rounded border flex items-center justify-center hover:bg-gray-100"
+                >
+                  +
+                </button>
+              </div>
+              <div className="flex flex-col gap-1">
+                <button
+                  onClick={() => handlePreview(item.album)}
+                  disabled={previewLoading}
+                  className="text-indigo-600 hover:text-indigo-800 text-sm font-medium disabled:opacity-50"
+                >
+                  Preview
+                </button>
+                <button onClick={() => handleRemove(item.id)} className="text-red-500 hover:text-red-700 text-sm">
+                  Remove
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                className="w-8 h-8 rounded border flex items-center justify-center hover:bg-gray-100"
-              >
-                -
-              </button>
-              <span className="w-8 text-center">{item.quantity}</span>
-              <button
-                onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                className="w-8 h-8 rounded border flex items-center justify-center hover:bg-gray-100"
-              >
-                +
-              </button>
-            </div>
-            <button onClick={() => handleRemove(item.id)} className="text-red-500 hover:text-red-700 text-sm">
-              Remove
-            </button>
           </div>
         ))}
       </div>
@@ -105,6 +144,106 @@ export default function Cart() {
         >
           Proceed to Checkout
         </Link>
+      </div>
+
+      {/* Album preview modal */}
+      {preview && (
+        <AlbumPreviewModal
+          album={preview.album}
+          pageLayouts={preview.pageLayouts}
+          onClose={() => setPreview(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function AlbumPreviewModal({ album, pageLayouts, onClose }) {
+  const [activePage, setActivePage] = useState(0);
+
+  const photosByPage = {};
+  (album.photos || []).forEach((p) => {
+    if (!photosByPage[p.page_number]) photosByPage[p.page_number] = [];
+    photosByPage[p.page_number].push(p);
+  });
+
+  // Show pages that have photos, or all layouts
+  const pagesWithPhotos = pageLayouts.filter(
+    (l) => photosByPage[l.page_number]?.length > 0
+  );
+  const pagesToShow = pagesWithPhotos.length > 0 ? pagesWithPhotos : pageLayouts;
+  const currentLayout = pagesToShow[activePage] || pagesToShow[0];
+  const currentPhotos = currentLayout ? photosByPage[currentLayout.page_number] || [] : [];
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">{album.title}</h2>
+            <p className="text-sm text-gray-500">
+              {album.template_size?.template?.name} &middot; {album.photos?.length || 0} photos
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 transition"
+          >
+            X
+          </button>
+        </div>
+
+        {currentLayout ? (
+          <>
+            <CanvasAlbumPage
+              layout={currentLayout}
+              photos={currentPhotos}
+              width={Math.min(650, window.innerWidth - 100)}
+              readOnly
+            />
+
+            {pagesToShow.length > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-4">
+                <button
+                  onClick={() => setActivePage((p) => Math.max(0, p - 1))}
+                  disabled={activePage === 0}
+                  className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 transition"
+                >
+                  &larr; Prev
+                </button>
+                <span className="text-sm text-gray-500">
+                  Page {currentLayout.page_number} ({activePage + 1} of {pagesToShow.length})
+                </span>
+                <button
+                  onClick={() => setActivePage((p) => Math.min(pagesToShow.length - 1, p + 1))}
+                  disabled={activePage === pagesToShow.length - 1}
+                  className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 transition"
+                >
+                  Next &rarr;
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="py-6">
+            <p className="text-gray-400 text-sm text-center mb-4">No page layouts available for canvas preview.</p>
+            {(album.photos || []).length > 0 && (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                {(album.photos || []).map((p) => (
+                  <img
+                    key={p.id}
+                    src={p.photo_url}
+                    alt="Album photo"
+                    className="w-full aspect-square object-cover rounded-lg"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

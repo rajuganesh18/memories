@@ -5,7 +5,6 @@ import { createAlbum, getAlbum, completeAlbum, uploadPhoto } from '../api/albums
 import { getTemplate } from '../api/templates';
 import { useCart } from '../context/CartContext';
 import PhotoUploader from '../components/albums/PhotoUploader';
-import AlbumPreview from '../components/albums/AlbumPreview';
 import CanvasAlbumPage from '../components/albums/CanvasAlbumPage';
 
 export default function AlbumBuilder() {
@@ -66,13 +65,6 @@ export default function AlbumBuilder() {
     setAlbum((prev) => ({
       ...prev,
       photos: [...(prev.photos || []), photo],
-    }));
-  };
-
-  const handlePhotoDeleted = (photoId) => {
-    setAlbum((prev) => ({
-      ...prev,
-      photos: prev.photos.filter((p) => p.id !== photoId),
     }));
   };
 
@@ -216,7 +208,7 @@ export default function AlbumBuilder() {
 
       {/* Photo upload area */}
       {album.status === 'draft' && (
-        <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
+        <div className="bg-white p-6 rounded-xl shadow-sm">
           <h2 className="font-semibold text-gray-900 mb-4">
             Upload Photos {hasCanvasLayouts ? `for Page ${currentPage}` : ''}
           </h2>
@@ -247,15 +239,6 @@ export default function AlbumBuilder() {
           </div>
         </div>
       )}
-
-      {/* Full album preview */}
-      <div className="bg-white p-6 rounded-xl shadow-sm">
-        <AlbumPreview
-          album={album}
-          onPhotoDeleted={handlePhotoDeleted}
-          pageLayouts={pageLayouts}
-        />
-      </div>
     </div>
   );
 }
