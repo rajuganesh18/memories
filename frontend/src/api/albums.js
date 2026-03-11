@@ -1,7 +1,7 @@
 import api from './client';
 
-export const createAlbum = (data) => api.post('/albums', data);
-export const getAlbums = () => api.get('/albums');
+export const createAlbum = (data) => api.post('/albums/', data);
+export const getAlbums = () => api.get('/albums/');
 export const getAlbum = (id) => api.get(`/albums/${id}`);
 
 export const uploadPhoto = (albumId, file, pageNumber, position) => {
