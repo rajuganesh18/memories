@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { createAlbum, getAlbum, completeAlbum } from '../api/albums';
+import { createAlbum, getAlbum, completeAlbum, uploadPhoto } from '../api/albums';
+import { getTemplate } from '../api/templates';
+import { useCart } from '../context/CartContext';
 import PhotoUploader from '../components/albums/PhotoUploader';
 import AlbumPreview from '../components/albums/AlbumPreview';
+import CanvasAlbumPage from '../components/albums/CanvasAlbumPage';
 
 export default function AlbumBuilder() {
   const [searchParams] = useSearchParams();
@@ -11,18 +14,33 @@ export default function AlbumBuilder() {
   const templateSizeId = searchParams.get('template_size_id');
   const albumIdParam = searchParams.get('album_id');
 
+  const { addToCart } = useCart();
   const [album, setAlbum] = useState(null);
   const [title, setTitle] = useState('My Album');
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageLayouts, setPageLayouts] = useState([]);
 
   useEffect(() => {
     if (albumIdParam) {
       getAlbum(albumIdParam)
-        .then((res) => setAlbum(res.data))
+        .then((res) => {
+          setAlbum(res.data);
+          loadPageLayouts(res.data.template_size?.template?.id);
+        })
         .catch(() => toast.error('Album not found'));
     }
   }, [albumIdParam]);
+
+  const loadPageLayouts = async (templateId) => {
+    if (!templateId) return;
+    try {
+      const res = await getTemplate(templateId);
+      setPageLayouts(res.data.page_layouts || []);
+    } catch {
+      setPageLayouts([]);
+    }
+  };
 
   const handleCreate = async () => {
     if (!templateSizeId) {
@@ -34,8 +52,8 @@ export default function AlbumBuilder() {
     try {
       const res = await createAlbum({ template_size_id: templateSizeId, title });
       setAlbum(res.data);
+      loadPageLayouts(res.data.template_size?.template?.id);
       toast.success('Album created!');
-      // Update URL without full reload
       window.history.replaceState(null, '', `/albums/create?album_id=${res.data.id}`);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to create album');
@@ -62,10 +80,25 @@ export default function AlbumBuilder() {
     try {
       const res = await completeAlbum(album.id);
       setAlbum(res.data);
-      toast.success('Album completed! You can now add it to your cart.');
+      await addToCart(res.data.id);
+      toast.success('Album completed and added to cart!');
       navigate('/cart');
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to complete album');
+    }
+  };
+
+  const handleCanvasDrop = async (slotIndex, file) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please drop an image file');
+      return;
+    }
+    try {
+      const res = await uploadPhoto(album.id, file, currentPage, slotIndex);
+      handlePhotoUploaded(res.data);
+      toast.success('Photo uploaded');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Upload failed');
     }
   };
 
@@ -102,6 +135,9 @@ export default function AlbumBuilder() {
   // Step 2: Upload photos
   const template = album.template_size?.template;
   const totalPages = template?.pages_count || 20;
+  const hasCanvasLayouts = pageLayouts.length > 0;
+  const currentLayout = pageLayouts.find((l) => l.page_number === currentPage);
+  const currentPagePhotos = (album.photos || []).filter((p) => p.page_number === currentPage);
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -124,12 +160,68 @@ export default function AlbumBuilder() {
         )}
       </div>
 
+      {/* Page navigation */}
+      <div className="flex items-center gap-3 mb-4">
+        <label className="text-sm font-medium text-gray-700">Page:</label>
+        <div className="flex gap-1 flex-wrap">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
+            const hasPhotos = (album.photos || []).some((ph) => ph.page_number === p);
+            const hasLayout = pageLayouts.some((l) => l.page_number === p);
+            return (
+              <button
+                key={p}
+                onClick={() => setCurrentPage(p)}
+                className={`w-8 h-8 text-xs rounded transition ${
+                  p === currentPage
+                    ? 'bg-indigo-600 text-white'
+                    : hasPhotos
+                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                      : hasLayout
+                        ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+              >
+                {p}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Canvas preview + upload for current page */}
+      {hasCanvasLayouts && currentLayout && (
+        <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
+          <h2 className="font-semibold text-gray-900 mb-3">
+            Page {currentPage} Preview
+            {currentPagePhotos.length > 0 && (
+              <span className="text-sm font-normal text-gray-400 ml-2">
+                ({currentPagePhotos.length} photo{currentPagePhotos.length !== 1 ? 's' : ''})
+              </span>
+            )}
+          </h2>
+          <CanvasAlbumPage
+            layout={currentLayout}
+            photos={currentPagePhotos}
+            width={Math.min(700, window.innerWidth - 80)}
+            readOnly={album.status === 'completed'}
+            onPhotoDropped={album.status === 'draft' ? handleCanvasDrop : undefined}
+          />
+          {album.status === 'draft' && (
+            <p className="text-xs text-gray-400 mt-2">
+              Drag and drop images onto the slots, or use the uploader below.
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Photo upload area */}
       {album.status === 'draft' && (
         <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-900">Upload Photos</h2>
-            <div className="flex items-center gap-2">
+          <h2 className="font-semibold text-gray-900 mb-4">
+            Upload Photos {hasCanvasLayouts ? `for Page ${currentPage}` : ''}
+          </h2>
+          {!hasCanvasLayouts && (
+            <div className="flex items-center gap-2 mb-4">
               <label className="text-sm text-gray-500">Page:</label>
               <select
                 value={currentPage}
@@ -141,9 +233,9 @@ export default function AlbumBuilder() {
                 ))}
               </select>
             </div>
-          </div>
+          )}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {Array.from({ length: template?.photos_per_page || 1 }, (_, i) => (
+            {Array.from({ length: currentLayout?.slots?.length || template?.photos_per_page || 1 }, (_, i) => (
               <PhotoUploader
                 key={`${currentPage}-${i}`}
                 albumId={album.id}
@@ -156,11 +248,12 @@ export default function AlbumBuilder() {
         </div>
       )}
 
-      {/* Album preview */}
+      {/* Full album preview */}
       <div className="bg-white p-6 rounded-xl shadow-sm">
         <AlbumPreview
           album={album}
           onPhotoDeleted={handlePhotoDeleted}
+          pageLayouts={pageLayouts}
         />
       </div>
     </div>

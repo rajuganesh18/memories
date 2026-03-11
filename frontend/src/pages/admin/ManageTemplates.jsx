@@ -12,6 +12,7 @@ import {
   adminDeleteSampleImage,
   getTemplate,
 } from '../../api/templates';
+import PageLayoutEditor from '../../components/admin/PageLayoutEditor';
 
 export default function ManageTemplates() {
   const [templates, setTemplates] = useState([]);
@@ -29,6 +30,8 @@ export default function ManageTemplates() {
   const [samplePanel, setSamplePanel] = useState(null); // template id
   const [sampleImages, setSampleImages] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [layoutPanel, setLayoutPanel] = useState(null); // template id
+  const [layoutData, setLayoutData] = useState([]);
 
   const loadData = () => {
     adminGetTemplates().then((r) => setTemplates(r.data)).catch(() => {});
@@ -121,6 +124,25 @@ export default function ManageTemplates() {
       loadSampleImages(templateId);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Delete failed');
+    }
+  };
+
+  const toggleLayoutPanel = (templateId) => {
+    if (layoutPanel === templateId) {
+      setLayoutPanel(null);
+      setLayoutData([]);
+    } else {
+      setLayoutPanel(templateId);
+      loadLayoutData(templateId);
+    }
+  };
+
+  const loadLayoutData = async (templateId) => {
+    try {
+      const res = await getTemplate(templateId);
+      setLayoutData(res.data.page_layouts || []);
+    } catch {
+      setLayoutData([]);
     }
   };
 
@@ -245,6 +267,9 @@ export default function ManageTemplates() {
                 <p className="text-sm text-gray-500 mt-1">{t.description || 'No description'} &middot; {t.pages_count} pages</p>
               </div>
               <div className="flex gap-2">
+                <button onClick={() => toggleLayoutPanel(t.id)} className="text-xs bg-teal-50 text-teal-600 px-3 py-1 rounded-lg hover:bg-teal-100">
+                  {layoutPanel === t.id ? 'Hide Layouts' : 'Page Layouts'}
+                </button>
                 <button onClick={() => toggleSamplePanel(t.id)} className="text-xs bg-purple-50 text-purple-600 px-3 py-1 rounded-lg hover:bg-purple-100">
                   {samplePanel === t.id ? 'Hide Samples' : 'Samples'}
                 </button>
@@ -322,6 +347,21 @@ export default function ManageTemplates() {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Page layout editor panel */}
+            {layoutPanel === t.id && (
+              <div className="mt-3 border-t pt-3">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">
+                  Page Layouts — Upload backgrounds and define photo slot regions
+                </h4>
+                <PageLayoutEditor
+                  templateId={t.id}
+                  pagesCount={t.pages_count}
+                  existingLayouts={layoutData}
+                  onUpdate={() => loadLayoutData(t.id)}
+                />
               </div>
             )}
           </div>
