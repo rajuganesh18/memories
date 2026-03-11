@@ -76,6 +76,8 @@ The default `.env` values work with the Docker Compose PostgreSQL setup. Edit `.
 | `RAZORPAY_KEY_SECRET` | `your-razorpay-key-secret` | Razorpay API secret |
 | `CORS_ORIGINS` | `http://localhost:5173` | Allowed CORS origins |
 | `UPLOAD_DIR` | `uploads` | Photo upload directory |
+| `ADMIN_EMAIL` | _(empty)_ | Seed admin email (created on first startup) |
+| `ADMIN_PASSWORD` | _(empty)_ | Seed admin password |
 
 ### 3. Run Database Migrations
 
@@ -117,6 +119,31 @@ npm run dev
 
 The frontend runs at `http://localhost:5173` with API requests proxied to the backend.
 
+## Admin User Setup
+
+### First admin (automatic seed)
+
+Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in your `.env` file before starting the backend. On startup the server will automatically create (or promote) this user as an admin:
+
+```env
+ADMIN_EMAIL=admin@memories.com
+ADMIN_PASSWORD=changeme123
+```
+
+The seed runs on every startup but is idempotent — if the user already exists as admin, nothing changes. If the user exists but isn't an admin, they get promoted.
+
+### Promoting additional admins
+
+Once logged in as an admin, you can manage other users via the admin API:
+
+| Action | Endpoint | Method |
+|--------|----------|--------|
+| List all users | `/api/v1/admin/users` | `GET` |
+| Promote user to admin | `/api/v1/admin/users/{user_id}/promote` | `PUT` |
+| Demote admin to regular user | `/api/v1/admin/users/{user_id}/demote` | `PUT` |
+
+> **Note:** An admin cannot demote themselves (safety guard).
+
 ## Running Tests
 
 ```bash
@@ -137,7 +164,7 @@ Tests use an in-memory SQLite database, so no external database is needed.
 | Addresses | `/api/v1/addresses` | `GET /`, `POST /`, `PUT /{id}`, `DELETE /{id}` |
 | Orders | `/api/v1/orders` | `POST /`, `GET /`, `GET /{id}` |
 | Payments | `/api/v1/payments` | `POST /create`, `POST /verify`, `POST /webhook` |
-| Admin | `/api/v1/admin` | Template/size/order management (requires admin role) |
+| Admin | `/api/v1/admin` | Template/size/order/user management (requires admin role) |
 
 ## Tech Stack
 
