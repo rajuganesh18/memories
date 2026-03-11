@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { getTemplate } from '../api/templates';
 import { useAuth } from '../context/AuthContext';
 import SizeSelector from '../components/templates/SizeSelector';
+import AlbumPageView from '../components/albums/AlbumPageView';
 
 export default function TemplateDetail() {
   const { id } = useParams();
@@ -153,6 +154,47 @@ export default function TemplateDetail() {
           </button>
         </div>
       </div>
+
+      {/* Sample Album Preview */}
+      {template.sample_images?.length > 0 && (
+        <div className="mt-10">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">
+            Sample Album Preview
+          </h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Browse through the pages to see how your album will look with this template.
+          </p>
+          <AlbumPageView
+            pages={buildSamplePages(template)}
+            photosPerPage={template.photos_per_page}
+            totalPages={template.pages_count}
+            readOnly
+          />
+        </div>
+      )}
     </div>
   );
+}
+
+function buildSamplePages(template) {
+  const images = template.sample_images || [];
+  const perPage = template.photos_per_page || 1;
+  const pageCount = Math.max(
+    Math.ceil(images.length / perPage),
+    1
+  );
+
+  const pages = [];
+  for (let p = 0; p < pageCount; p++) {
+    const slots = [];
+    for (let s = 0; s < perPage; s++) {
+      const imgIdx = p * perPage + s;
+      slots.push({
+        position: s,
+        photo: images[imgIdx] ? { image_url: images[imgIdx].image_url } : null,
+      });
+    }
+    pages.push({ pageNumber: p + 1, slots });
+  }
+  return pages;
 }
