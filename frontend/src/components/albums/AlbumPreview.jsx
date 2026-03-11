@@ -7,8 +7,11 @@ import CanvasAlbumPage from './CanvasAlbumPage';
 export default function AlbumPreview({ album, onPhotoDeleted, pageLayouts = [] }) {
   const template = album.template_size?.template;
   const totalPages = template?.pages_count || 20;
-  const photosPerPage = template?.photos_per_page || 1;
   const hasCanvasLayouts = pageLayouts.length > 0;
+  // Derive photos per page from layout slots (fallback to 1)
+  const photosPerPage = hasCanvasLayouts
+    ? Math.max(...pageLayouts.map((l) => l.slots?.length || 0), 1)
+    : 1;
 
   const [previewPage, setPreviewPage] = useState(0);
 
