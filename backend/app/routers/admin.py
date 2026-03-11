@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -14,16 +14,19 @@ from app.schemas.template import (
     TemplateSizeCreate,
     TemplateSizeUpdate,
 )
+from app.schemas.template import SampleImageResponse
 from app.services.template_service import (
     create_size,
     create_template,
     create_template_size,
+    delete_sample_image,
     delete_template,
     get_sizes,
     get_template_detail,
     get_templates,
     update_template,
     update_template_size,
+    upload_sample_image,
 )
 
 router = APIRouter(
@@ -87,6 +90,27 @@ def admin_update_template_size(
     ts_id: str, data: TemplateSizeUpdate, db: Session = Depends(get_db)
 ):
     return update_template_size(db, ts_id, data)
+
+
+# --- Sample Images ---
+@router.post(
+    "/templates/{template_id}/sample-images",
+    response_model=SampleImageResponse,
+    status_code=201,
+)
+def admin_upload_sample_image(
+    template_id: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    return upload_sample_image(db, template_id, file)
+
+
+@router.delete("/templates/{template_id}/sample-images/{image_id}", status_code=204)
+def admin_delete_sample_image(
+    template_id: str, image_id: str, db: Session = Depends(get_db)
+):
+    delete_sample_image(db, template_id, image_id)
 
 
 # --- Orders ---

@@ -76,5 +76,14 @@ class AlbumTemplateResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class SampleImageResponse(BaseModel):
+    id: str
+    image_url: str
+    sort_order: int
+
+    model_config = {"from_attributes": True}
+
+
 class AlbumTemplateDetailResponse(AlbumTemplateResponse):
     template_sizes: list[TemplateSizeResponse]
+    sample_images: list[SampleImageResponse] = []

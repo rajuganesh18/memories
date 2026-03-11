@@ -1,7 +1,12 @@
-from fastapi import HTTPException, status
+import os
+import uuid
+
+from fastapi import HTTPException, UploadFile, status
+from PIL import Image
 from sqlalchemy.orm import Session, joinedload
 
-from app.models.template import AlbumSize, AlbumTemplate, TemplateSize
+from app.core.config import settings
+from app.models.template import AlbumSize, AlbumTemplate, TemplateSampleImage, TemplateSize
 from app.schemas.template import (
     AlbumSizeCreate,
     AlbumTemplateCreate,
@@ -24,7 +29,10 @@ def get_templates(db: Session, theme: str | None = None, active_only: bool = Tru
 def get_template_detail(db: Session, template_id: str):
     template = (
         db.query(AlbumTemplate)
-        .options(joinedload(AlbumTemplate.template_sizes).joinedload(TemplateSize.size))
+        .options(
+            joinedload(AlbumTemplate.template_sizes).joinedload(TemplateSize.size),
+            joinedload(AlbumTemplate.sample_images),
+        )
         .filter(AlbumTemplate.id == template_id)
         .first()
     )
@@ -101,3 +109,59 @@ def update_template_size(db: Session, ts_id: str, data: TemplateSizeUpdate):
     db.commit()
     db.refresh(ts)
     return ts
+
+
+# --- Sample image operations ---
+def upload_sample_image(db: Session, template_id: str, file: UploadFile) -> TemplateSampleImage:
+    template = db.query(AlbumTemplate).filter(AlbumTemplate.id == template_id).first()
+    if not template:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Template not found")
+
+    sample_dir = os.path.join(settings.UPLOAD_DIR, "templates", template_id)
+    os.makedirs(sample_dir, exist_ok=True)
+
+    ext = os.path.splitext(file.filename or "sample.jpg")[1] or ".jpg"
+    filename = f"{uuid.uuid4()}{ext}"
+    filepath = os.path.join(sample_dir, filename)
+
+    img = Image.open(file.file)
+    img.thumbnail((2048, 2048))
+    if img.mode in ("RGBA", "P"):
+        img = img.convert("RGB")
+    img.save(filepath, "JPEG", quality=85)
+
+    max_order = (
+        db.query(TemplateSampleImage.sort_order)
+        .filter(TemplateSampleImage.template_id == template_id)
+        .order_by(TemplateSampleImage.sort_order.desc())
+        .first()
+    )
+    next_order = (max_order[0] + 1) if max_order else 0
+
+    image_url = f"/uploads/templates/{template_id}/{filename}"
+    sample = TemplateSampleImage(
+        template_id=template_id,
+        image_url=image_url,
+        sort_order=next_order,
+    )
+    db.add(sample)
+    db.commit()
+    db.refresh(sample)
+    return sample
+
+
+def delete_sample_image(db: Session, template_id: str, image_id: str) -> None:
+    sample = (
+        db.query(TemplateSampleImage)
+        .filter(TemplateSampleImage.id == image_id, TemplateSampleImage.template_id == template_id)
+        .first()
+    )
+    if not sample:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sample image not found")
+
+    filepath = sample.image_url.lstrip("/")
+    if os.path.exists(filepath):
+        os.remove(filepath)
+
+    db.delete(sample)
+    db.commit()

@@ -8,6 +8,9 @@ import {
   adminGetSizes,
   adminCreateSize,
   adminCreateTemplateSize,
+  adminUploadSampleImage,
+  adminDeleteSampleImage,
+  getTemplate,
 } from '../../api/templates';
 
 export default function ManageTemplates() {
@@ -23,6 +26,9 @@ export default function ManageTemplates() {
     label: '', width_inches: '', height_inches: '',
   });
   const [pricingForm, setPricingForm] = useState({ size_id: '', price: '' });
+  const [samplePanel, setSamplePanel] = useState(null); // template id
+  const [sampleImages, setSampleImages] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   const loadData = () => {
     adminGetTemplates().then((r) => setTemplates(r.data)).catch(() => {});
@@ -70,6 +76,51 @@ export default function ManageTemplates() {
       loadData();
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to create size');
+    }
+  };
+
+  const loadSampleImages = async (templateId) => {
+    try {
+      const res = await getTemplate(templateId);
+      setSampleImages(res.data.sample_images || []);
+    } catch {
+      setSampleImages([]);
+    }
+  };
+
+  const toggleSamplePanel = (templateId) => {
+    if (samplePanel === templateId) {
+      setSamplePanel(null);
+      setSampleImages([]);
+    } else {
+      setSamplePanel(templateId);
+      loadSampleImages(templateId);
+    }
+  };
+
+  const handleUploadSample = async (templateId, files) => {
+    setUploading(true);
+    try {
+      for (const file of files) {
+        await adminUploadSampleImage(templateId, file);
+      }
+      toast.success(`${files.length} sample image(s) uploaded`);
+      loadSampleImages(templateId);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDeleteSample = async (templateId, imageId) => {
+    if (!confirm('Delete this sample image?')) return;
+    try {
+      await adminDeleteSampleImage(templateId, imageId);
+      toast.success('Sample image deleted');
+      loadSampleImages(templateId);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Delete failed');
     }
   };
 
@@ -194,6 +245,9 @@ export default function ManageTemplates() {
                 <p className="text-sm text-gray-500 mt-1">{t.description || 'No description'} &middot; {t.pages_count} pages</p>
               </div>
               <div className="flex gap-2">
+                <button onClick={() => toggleSamplePanel(t.id)} className="text-xs bg-purple-50 text-purple-600 px-3 py-1 rounded-lg hover:bg-purple-100">
+                  {samplePanel === t.id ? 'Hide Samples' : 'Samples'}
+                </button>
                 <button onClick={() => setShowPricingForm(showPricingForm === t.id ? null : t.id)} className="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg hover:bg-indigo-100">
                   + Price
                 </button>
@@ -224,6 +278,51 @@ export default function ManageTemplates() {
                 </div>
                 <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm">Add</button>
               </form>
+            )}
+
+            {/* Sample images panel */}
+            {samplePanel === t.id && (
+              <div className="mt-3 border-t pt-3">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-medium text-gray-700">Sample Album Images</h4>
+                  <label className={`text-xs bg-purple-600 text-white px-3 py-1 rounded-lg cursor-pointer hover:bg-purple-700 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                    {uploading ? 'Uploading...' : '+ Upload Images'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files.length > 0) {
+                          handleUploadSample(t.id, Array.from(e.target.files));
+                          e.target.value = '';
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+                {sampleImages.length === 0 ? (
+                  <p className="text-xs text-gray-400">No sample images yet. Upload images to show customers what this album looks like.</p>
+                ) : (
+                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                    {sampleImages.map((img) => (
+                      <div key={img.id} className="relative group">
+                        <img
+                          src={img.image_url}
+                          alt="Sample"
+                          className="w-full aspect-square object-cover rounded-lg"
+                        />
+                        <button
+                          onClick={() => handleDeleteSample(t.id, img.id)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                        >
+                          X
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
         ))}

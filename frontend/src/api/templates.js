@@ -20,3 +20,14 @@ export const adminCreateTemplateSize = (data) =>
   api.post('/admin/template-sizes', data);
 export const adminUpdateTemplateSize = (id, data) =>
   api.put(`/admin/template-sizes/${id}`, data);
+
+export const adminUploadSampleImage = (templateId, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post(`/admin/templates/${templateId}/sample-images`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+export const adminDeleteSampleImage = (templateId, imageId) =>
+  api.delete(`/admin/templates/${templateId}/sample-images/${imageId}`);

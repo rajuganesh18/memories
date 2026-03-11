@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { getTemplate } from '../api/templates';
 import { useAuth } from '../context/AuthContext';
 import SizeSelector from '../components/templates/SizeSelector';
+import AlbumPageView from '../components/albums/AlbumPageView';
 
 export default function TemplateDetail() {
   const { id } = useParams();
@@ -12,6 +13,7 @@ export default function TemplateDetail() {
   const [template, setTemplate] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeImage, setActiveImage] = useState(0);
 
   useEffect(() => {
     getTemplate(id)
@@ -55,24 +57,55 @@ export default function TemplateDetail() {
       </Link>
 
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Template preview */}
-        <div className="aspect-square bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center">
-          {template.cover_image_url ? (
-            <img
-              src={template.cover_image_url}
-              alt={template.name}
-              className="w-full h-full object-cover rounded-xl"
-            />
-          ) : (
-            <div className="text-center">
-              <div className="text-6xl mb-4">
-                {template.theme === 'wedding' ? '💒' :
-                 template.theme === 'travel' ? '✈️' :
-                 template.theme === 'baby' ? '👶' :
-                 template.theme === 'birthday' ? '🎂' :
-                 template.theme === 'graduation' ? '🎓' : '📸'}
+        {/* Template preview / sample gallery */}
+        <div>
+          <div className="aspect-square bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center overflow-hidden">
+            {template.sample_images?.length > 0 ? (
+              <img
+                src={template.sample_images[activeImage]?.image_url}
+                alt={`${template.name} sample ${activeImage + 1}`}
+                className="w-full h-full object-cover"
+              />
+            ) : template.cover_image_url ? (
+              <img
+                src={template.cover_image_url}
+                alt={template.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="text-center">
+                <div className="text-6xl mb-4">
+                  {template.theme === 'wedding' ? '💒' :
+                   template.theme === 'travel' ? '✈️' :
+                   template.theme === 'baby' ? '👶' :
+                   template.theme === 'birthday' ? '🎂' :
+                   template.theme === 'graduation' ? '🎓' : '📸'}
+                </div>
+                <p className="text-gray-400">Template preview</p>
               </div>
-              <p className="text-gray-400">Template preview</p>
+            )}
+          </div>
+
+          {/* Thumbnail strip */}
+          {template.sample_images?.length > 1 && (
+            <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+              {template.sample_images.map((img, idx) => (
+                <button
+                  key={img.id}
+                  onClick={() => setActiveImage(idx)}
+                  className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition ${
+                    idx === activeImage
+                      ? 'border-indigo-600'
+                      : 'border-transparent hover:border-gray-300'
+                  }`}
+                >
+                  <img
+                    src={img.image_url}
+                    alt={`Sample ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -121,6 +154,47 @@ export default function TemplateDetail() {
           </button>
         </div>
       </div>
+
+      {/* Sample Album Preview */}
+      {template.sample_images?.length > 0 && (
+        <div className="mt-10">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">
+            Sample Album Preview
+          </h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Browse through the pages to see how your album will look with this template.
+          </p>
+          <AlbumPageView
+            pages={buildSamplePages(template)}
+            photosPerPage={template.photos_per_page}
+            totalPages={template.pages_count}
+            readOnly
+          />
+        </div>
+      )}
     </div>
   );
+}
+
+function buildSamplePages(template) {
+  const images = template.sample_images || [];
+  const perPage = template.photos_per_page || 1;
+  const pageCount = Math.max(
+    Math.ceil(images.length / perPage),
+    1
+  );
+
+  const pages = [];
+  for (let p = 0; p < pageCount; p++) {
+    const slots = [];
+    for (let s = 0; s < perPage; s++) {
+      const imgIdx = p * perPage + s;
+      slots.push({
+        position: s,
+        photo: images[imgIdx] ? { image_url: images[imgIdx].image_url } : null,
+      });
+    }
+    pages.push({ pageNumber: p + 1, slots });
+  }
+  return pages;
 }
