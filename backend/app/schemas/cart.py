@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from app.schemas.album import AlbumResponse
+from app.schemas.album import AlbumDetailResponse
 
 
 class CartItemAdd(BaseModel):
@@ -14,7 +14,7 @@ class CartItemUpdate(BaseModel):
 
 class CartItemResponse(BaseModel):
     id: str
-    album: AlbumResponse
+    album: AlbumDetailResponse
     quantity: int
 
     model_config = {"from_attributes": True}

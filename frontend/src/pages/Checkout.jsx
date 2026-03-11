@@ -220,7 +220,7 @@ export default function Checkout() {
           <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
           {items.map((item) => (
             <div key={item.id} className="flex justify-between text-sm mb-2">
-              <span>{item.album?.template_name || 'Album'} x{item.quantity}</span>
+              <span>{item.album?.title || 'Album'} x{item.quantity}</span>
               <span>&#8377;{((item.album?.template_size?.price || 0) * item.quantity).toFixed(2)}</span>
             </div>
           ))}
