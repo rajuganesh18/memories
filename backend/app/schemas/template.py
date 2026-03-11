@@ -84,6 +84,28 @@ class SampleImageResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+# --- TemplatePageLayout schemas ---
+class SlotPosition(BaseModel):
+    x: float  # percentage 0-100
+    y: float
+    width: float
+    height: float
+
+
+class PageLayoutResponse(BaseModel):
+    id: str
+    page_number: int
+    background_image_url: str | None
+    slots: list[SlotPosition]
+
+    model_config = {"from_attributes": True}
+
+
+class PageLayoutUpdate(BaseModel):
+    slots: list[SlotPosition]
+
+
 class AlbumTemplateDetailResponse(AlbumTemplateResponse):
     template_sizes: list[TemplateSizeResponse]
     sample_images: list[SampleImageResponse] = []
+    page_layouts: list[PageLayoutResponse] = []

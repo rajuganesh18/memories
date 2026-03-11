@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { getTemplate } from '../api/templates';
 import { useAuth } from '../context/AuthContext';
 import SizeSelector from '../components/templates/SizeSelector';
+import CanvasAlbumPage from '../components/albums/CanvasAlbumPage';
 
 export default function TemplateDetail() {
   const { id } = useParams();
@@ -51,6 +52,8 @@ export default function TemplateDetail() {
 
   const sampleImages = template.sample_images || [];
   const hasSamples = sampleImages.length > 0;
+  const pageLayouts = template.page_layouts || [];
+  const hasPageLayouts = pageLayouts.length > 0;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -181,6 +184,76 @@ export default function TemplateDetail() {
           </button>
         </div>
       </div>
+
+      {/* Canvas-based album page preview */}
+      {hasPageLayouts && (
+        <TemplatePagePreview pageLayouts={pageLayouts} sampleImages={sampleImages} />
+      )}
+    </div>
+  );
+}
+
+function TemplatePagePreview({ pageLayouts, sampleImages }) {
+  const [activePage, setActivePage] = useState(0);
+  const layout = pageLayouts[activePage];
+
+  // Map sample images into the page slots for preview
+  const samplePhotos = [];
+  if (layout) {
+    let imgIdx = 0;
+    // Use sample images as filler for the slots
+    for (let p = 0; p < pageLayouts.length; p++) {
+      if (p === activePage) {
+        for (let s = 0; s < (layout.slots?.length || 0); s++) {
+          if (sampleImages[imgIdx]) {
+            samplePhotos.push({
+              photo_url: sampleImages[imgIdx].image_url,
+              position: s,
+            });
+          }
+          imgIdx++;
+        }
+        break;
+      }
+      imgIdx += pageLayouts[p].slots?.length || 0;
+    }
+  }
+
+  return (
+    <div className="mt-10">
+      <h2 className="text-xl font-bold text-gray-900 mb-2">Album Page Preview</h2>
+      <p className="text-sm text-gray-500 mb-4">
+        See how your photos will look on each page of this album template.
+      </p>
+
+      <CanvasAlbumPage
+        layout={layout}
+        photos={samplePhotos}
+        width={Math.min(700, window.innerWidth - 80)}
+        readOnly
+      />
+
+      {pageLayouts.length > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-4">
+          <button
+            onClick={() => setActivePage((p) => Math.max(0, p - 1))}
+            disabled={activePage === 0}
+            className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 transition"
+          >
+            &larr; Prev
+          </button>
+          <span className="text-sm text-gray-500">
+            Page {layout?.page_number} ({activePage + 1} of {pageLayouts.length})
+          </span>
+          <button
+            onClick={() => setActivePage((p) => Math.min(pageLayouts.length - 1, p + 1))}
+            disabled={activePage === pageLayouts.length - 1}
+            className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 transition"
+          >
+            Next &rarr;
+          </button>
+        </div>
+      )}
     </div>
   );
 }

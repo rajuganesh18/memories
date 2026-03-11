@@ -6,11 +6,12 @@ from PIL import Image
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.config import settings
-from app.models.template import AlbumSize, AlbumTemplate, TemplateSampleImage, TemplateSize
+from app.models.template import AlbumSize, AlbumTemplate, TemplatePageLayout, TemplateSampleImage, TemplateSize
 from app.schemas.template import (
     AlbumSizeCreate,
     AlbumTemplateCreate,
     AlbumTemplateUpdate,
+    PageLayoutUpdate,
     TemplateSizeCreate,
     TemplateSizeUpdate,
 )
@@ -32,6 +33,7 @@ def get_template_detail(db: Session, template_id: str):
         .options(
             joinedload(AlbumTemplate.template_sizes).joinedload(TemplateSize.size),
             joinedload(AlbumTemplate.sample_images),
+            joinedload(AlbumTemplate.page_layouts),
         )
         .filter(AlbumTemplate.id == template_id)
         .first()
@@ -164,4 +166,86 @@ def delete_sample_image(db: Session, template_id: str, image_id: str) -> None:
         os.remove(filepath)
 
     db.delete(sample)
+    db.commit()
+
+
+# --- Page layout operations ---
+def upload_page_background(db: Session, template_id: str, page_number: int, file: UploadFile) -> TemplatePageLayout:
+    template = db.query(AlbumTemplate).filter(AlbumTemplate.id == template_id).first()
+    if not template:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Template not found")
+    if page_number < 1 or page_number > template.pages_count:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid page number")
+
+    layout_dir = os.path.join(settings.UPLOAD_DIR, "templates", template_id, "pages")
+    os.makedirs(layout_dir, exist_ok=True)
+
+    ext = os.path.splitext(file.filename or "page.jpg")[1] or ".jpg"
+    filename = f"page_{page_number}_{uuid.uuid4()}{ext}"
+    filepath = os.path.join(layout_dir, filename)
+
+    img = Image.open(file.file)
+    img.thumbnail((2048, 2048))
+    if img.mode in ("RGBA", "P"):
+        img = img.convert("RGB")
+    img.save(filepath, "JPEG", quality=90)
+
+    bg_url = f"/uploads/templates/{template_id}/pages/{filename}"
+
+    layout = (
+        db.query(TemplatePageLayout)
+        .filter(TemplatePageLayout.template_id == template_id, TemplatePageLayout.page_number == page_number)
+        .first()
+    )
+    if layout:
+        # Remove old background file
+        if layout.background_image_url:
+            old_path = layout.background_image_url.lstrip("/")
+            if os.path.exists(old_path):
+                os.remove(old_path)
+        layout.background_image_url = bg_url
+    else:
+        layout = TemplatePageLayout(
+            template_id=template_id,
+            page_number=page_number,
+            background_image_url=bg_url,
+            slots=[],
+        )
+        db.add(layout)
+
+    db.commit()
+    db.refresh(layout)
+    return layout
+
+
+def update_page_slots(db: Session, template_id: str, page_number: int, data: PageLayoutUpdate) -> TemplatePageLayout:
+    layout = (
+        db.query(TemplatePageLayout)
+        .filter(TemplatePageLayout.template_id == template_id, TemplatePageLayout.page_number == page_number)
+        .first()
+    )
+    if not layout:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Page layout not found. Upload a background first.")
+
+    layout.slots = [s.model_dump() for s in data.slots]
+    db.commit()
+    db.refresh(layout)
+    return layout
+
+
+def delete_page_layout(db: Session, template_id: str, page_number: int) -> None:
+    layout = (
+        db.query(TemplatePageLayout)
+        .filter(TemplatePageLayout.template_id == template_id, TemplatePageLayout.page_number == page_number)
+        .first()
+    )
+    if not layout:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Page layout not found")
+
+    if layout.background_image_url:
+        filepath = layout.background_image_url.lstrip("/")
+        if os.path.exists(filepath):
+            os.remove(filepath)
+
+    db.delete(layout)
     db.commit()
