@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     RAZORPAY_KEY_SECRET: str = ""
     CORS_ORIGINS: str = "http://localhost:5173"
     UPLOAD_DIR: str = "uploads"
+    ADMIN_EMAIL: str = ""
+    ADMIN_PASSWORD: str = ""
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 

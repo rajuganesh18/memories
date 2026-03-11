@@ -1,14 +1,25 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
+from app.core.seed import seed_admin_user
 from app.routers import admin, albums, addresses, auth, cart, orders, payments, templates
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    seed_admin_user()
+    yield
+
 
 app = FastAPI(
     title="Memories - Album E-Commerce API",
     description="API for ordering custom photo albums with predefined templates",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
