@@ -13,6 +13,86 @@ function useLoadImage(url) {
   return image;
 }
 
+/** Renders a single slot with its photo (each slot is its own component to safely use hooks). */
+function PhotoSlot({ slot, photo, index, stageWidth, stageHeight, readOnly }) {
+  const photoImage = useLoadImage(photo?.photo_url || photo?.image_url);
+
+  const toPixel = (pct, total) => (pct / 100) * total;
+  const shape = slot.shape || 'rect';
+  const rotation = slot.rotation || 0;
+  const sx = toPixel(slot.x, stageWidth);
+  const sy = toPixel(slot.y, stageHeight);
+  const sw = toPixel(slot.width, stageWidth);
+  const sh = shape === 'circle' ? sw : toPixel(slot.height, stageHeight);
+
+  const cx = sx + sw / 2;
+  const cy = sy + sh / 2;
+
+  return (
+    <Group
+      x={cx}
+      y={cy}
+      rotation={rotation}
+      clipFunc={shape === 'rect' ? undefined : (ctx) => {
+        ctx.beginPath();
+        ctx.ellipse(0, 0, sw / 2, sh / 2, 0, 0, Math.PI * 2);
+        ctx.closePath();
+      }}
+      clipX={shape === 'rect' ? -sw / 2 : undefined}
+      clipY={shape === 'rect' ? -sh / 2 : undefined}
+      clipWidth={shape === 'rect' ? sw : undefined}
+      clipHeight={shape === 'rect' ? sh : undefined}
+    >
+      {shape === 'rect' ? (
+        <Rect
+          x={-sw / 2}
+          y={-sh / 2}
+          width={sw}
+          height={sh}
+          fill={photoImage ? undefined : '#e5e7eb'}
+          stroke={photoImage ? undefined : '#d1d5db'}
+          strokeWidth={photoImage ? 0 : 1}
+          dash={photoImage ? undefined : [4, 4]}
+          listening={false}
+        />
+      ) : (
+        <Ellipse
+          x={0}
+          y={0}
+          radiusX={sw / 2}
+          radiusY={sh / 2}
+          fill={photoImage ? undefined : '#e5e7eb'}
+          stroke={photoImage ? undefined : '#d1d5db'}
+          strokeWidth={photoImage ? 0 : 1}
+          dash={photoImage ? undefined : [4, 4]}
+          listening={false}
+        />
+      )}
+
+      {photoImage ? (
+        <KImage
+          image={photoImage}
+          x={-sw / 2}
+          y={-sh / 2}
+          width={sw}
+          height={sh}
+          listening={!readOnly}
+          draggable={!readOnly}
+        />
+      ) : (
+        <Text
+          x={-20}
+          y={-8}
+          text={readOnly ? '' : `Slot ${index + 1}`}
+          fontSize={12}
+          fill="#9ca3af"
+          listening={false}
+        />
+      )}
+    </Group>
+  );
+}
+
 /**
  * Renders a single album page on a Konva canvas.
  * Shows the template background with user photos clipped to the defined slots.
@@ -23,11 +103,10 @@ export default function CanvasAlbumPage({ layout, photos = [], width = 600, read
   const bgImage = useLoadImage(layout?.background_image_url);
   const stageRef = useRef();
 
-  // Load all photo images
-  const photoImages = {};
+  // Build a map from slot index to photo
+  const photoByPosition = {};
   photos.forEach((p) => {
-    const img = useLoadImage(p.photo_url || p.image_url);
-    if (img) photoImages[p.position ?? p.sort_order ?? 0] = { img, photo: p };
+    photoByPosition[p.position ?? p.sort_order ?? 0] = p;
   });
 
   const toPixel = (pct, total) => (pct / 100) * total;
@@ -40,7 +119,6 @@ export default function CanvasAlbumPage({ layout, photos = [], width = 600, read
     stage.setPointersPositions(e);
     const pos = stage.getPointerPosition();
 
-    // Find which slot the drop landed in (bounding box hit test)
     const slots = layout?.slots || [];
     for (let i = 0; i < slots.length; i++) {
       const s = slots[i];
@@ -76,95 +154,23 @@ export default function CanvasAlbumPage({ layout, photos = [], width = 600, read
     >
       <Stage ref={stageRef} width={width} height={height}>
         <Layer>
-          {/* Background */}
           {bgImage ? (
             <KImage image={bgImage} width={width} height={height} listening={false} />
           ) : (
             <Rect width={width} height={height} fill="#f9fafb" listening={false} />
           )}
 
-          {/* Photo slots */}
-          {(layout.slots || []).map((slot, idx) => {
-            const shape = slot.shape || 'rect';
-            const rotation = slot.rotation || 0;
-            const sx = toPixel(slot.x, width);
-            const sy = toPixel(slot.y, height);
-            const sw = toPixel(slot.width, width);
-            const sh = shape === 'circle' ? sw : toPixel(slot.height, height);
-            const photoData = photoImages[idx];
-
-            // Center point for rotation
-            const cx = sx + sw / 2;
-            const cy = sy + sh / 2;
-
-            return (
-              <Group
-                key={idx}
-                x={cx}
-                y={cy}
-                rotation={rotation}
-                clipFunc={shape === 'rect' ? undefined : (ctx) => {
-                  ctx.beginPath();
-                  const rx = sw / 2;
-                  const ry = sh / 2;
-                  ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
-                  ctx.closePath();
-                }}
-                clipX={shape === 'rect' ? -sw / 2 : undefined}
-                clipY={shape === 'rect' ? -sh / 2 : undefined}
-                clipWidth={shape === 'rect' ? sw : undefined}
-                clipHeight={shape === 'rect' ? sh : undefined}
-              >
-                {/* Slot background placeholder */}
-                {shape === 'rect' ? (
-                  <Rect
-                    x={-sw / 2}
-                    y={-sh / 2}
-                    width={sw}
-                    height={sh}
-                    fill={photoData ? undefined : '#e5e7eb'}
-                    stroke={photoData ? undefined : '#d1d5db'}
-                    strokeWidth={photoData ? 0 : 1}
-                    dash={photoData ? undefined : [4, 4]}
-                    listening={false}
-                  />
-                ) : (
-                  <Ellipse
-                    x={0}
-                    y={0}
-                    radiusX={sw / 2}
-                    radiusY={sh / 2}
-                    fill={photoData ? undefined : '#e5e7eb'}
-                    stroke={photoData ? undefined : '#d1d5db'}
-                    strokeWidth={photoData ? 0 : 1}
-                    dash={photoData ? undefined : [4, 4]}
-                    listening={false}
-                  />
-                )}
-
-                {photoData ? (
-                  <KImage
-                    image={photoData.img}
-                    x={-sw / 2}
-                    y={-sh / 2}
-                    width={sw}
-                    height={sh}
-                    listening={!readOnly}
-                    draggable={!readOnly}
-                  />
-                ) : (
-                  <Text
-                    x={-20}
-                    y={-8}
-                    text={readOnly ? '' : `Slot ${idx + 1}`}
-                    fontSize={12}
-                    fill="#9ca3af"
-                    listening={false}
-                  />
-                )}
-              </Group>
-            );
-          })}
+          {(layout.slots || []).map((slot, idx) => (
+            <PhotoSlot
+              key={idx}
+              slot={slot}
+              photo={photoByPosition[idx]}
+              index={idx}
+              stageWidth={width}
+              stageHeight={height}
+              readOnly={readOnly}
+            />
+          ))}
         </Layer>
       </Stage>
     </div>

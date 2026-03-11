@@ -66,9 +66,9 @@ export default function Cart() {
         {items.map((item) => (
           <div key={item.id} className="flex items-center gap-4 bg-white p-4 rounded-lg shadow-sm border">
             <div className="flex-1">
-              <h3 className="font-semibold">{item.album?.template_name || 'Album'}</h3>
+              <h3 className="font-semibold">{item.album?.title || 'Album'}</h3>
               <p className="text-sm text-gray-500">
-                {item.album?.size_name || ''} &middot; {item.album?.photos_count || 0} photos
+                {item.album?.template_size?.template?.name} &middot; {item.album?.template_size?.size?.label || ''} &middot; {item.album?.photos?.length || 0} photos
               </p>
               <p className="text-sm text-gray-500">Status: {item.album?.status}</p>
             </div>

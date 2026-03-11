@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
-from app.models.album import Album
+from app.models.album import Album, AlbumPhoto
 from app.models.cart import Cart, CartItem
 from app.models.template import TemplateSize
 
@@ -10,6 +10,9 @@ def get_or_create_cart(db: Session, user_id: str) -> Cart:
     cart = (
         db.query(Cart)
         .options(
+            joinedload(Cart.items)
+            .joinedload(CartItem.album)
+            .joinedload(Album.photos),
             joinedload(Cart.items)
             .joinedload(CartItem.album)
             .joinedload(Album.template_size)
