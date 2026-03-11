@@ -4,7 +4,6 @@ import toast from 'react-hot-toast';
 import { getTemplate } from '../api/templates';
 import { useAuth } from '../context/AuthContext';
 import SizeSelector from '../components/templates/SizeSelector';
-import AlbumPageView from '../components/albums/AlbumPageView';
 
 export default function TemplateDetail() {
   const { id } = useParams();
@@ -50,6 +49,9 @@ export default function TemplateDetail() {
     );
   }
 
+  const sampleImages = template.sample_images || [];
+  const hasSamples = sampleImages.length > 0;
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <Link to="/templates" className="text-indigo-600 hover:underline text-sm mb-4 inline-block">
@@ -57,12 +59,12 @@ export default function TemplateDetail() {
       </Link>
 
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Template preview / sample gallery */}
+        {/* Template preview / sample gallery with page navigation */}
         <div>
-          <div className="aspect-square bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center overflow-hidden">
-            {template.sample_images?.length > 0 ? (
+          <div className="aspect-square bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center overflow-hidden relative">
+            {hasSamples ? (
               <img
-                src={template.sample_images[activeImage]?.image_url}
+                src={sampleImages[activeImage]?.image_url}
                 alt={`${template.name} sample ${activeImage + 1}`}
                 className="w-full h-full object-cover"
               />
@@ -84,28 +86,53 @@ export default function TemplateDetail() {
                 <p className="text-gray-400">Template preview</p>
               </div>
             )}
+
+            {/* Prev / Next overlay arrows */}
+            {sampleImages.length > 1 && (
+              <>
+                <button
+                  onClick={() => setActiveImage((i) => Math.max(0, i - 1))}
+                  disabled={activeImage === 0}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-700 w-8 h-8 rounded-full flex items-center justify-center shadow disabled:opacity-30 transition"
+                >
+                  &larr;
+                </button>
+                <button
+                  onClick={() => setActiveImage((i) => Math.min(sampleImages.length - 1, i + 1))}
+                  disabled={activeImage === sampleImages.length - 1}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-700 w-8 h-8 rounded-full flex items-center justify-center shadow disabled:opacity-30 transition"
+                >
+                  &rarr;
+                </button>
+              </>
+            )}
           </div>
 
-          {/* Thumbnail strip */}
-          {template.sample_images?.length > 1 && (
-            <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
-              {template.sample_images.map((img, idx) => (
-                <button
-                  key={img.id}
-                  onClick={() => setActiveImage(idx)}
-                  className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition ${
-                    idx === activeImage
-                      ? 'border-indigo-600'
-                      : 'border-transparent hover:border-gray-300'
-                  }`}
-                >
-                  <img
-                    src={img.image_url}
-                    alt={`Sample ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
+          {/* Page indicator + thumbnails */}
+          {sampleImages.length > 1 && (
+            <div className="mt-3">
+              <p className="text-xs text-gray-400 text-center mb-2">
+                Page {activeImage + 1} of {sampleImages.length}
+              </p>
+              <div className="flex gap-2 overflow-x-auto pb-1 justify-center">
+                {sampleImages.map((img, idx) => (
+                  <button
+                    key={img.id}
+                    onClick={() => setActiveImage(idx)}
+                    className={`flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition ${
+                      idx === activeImage
+                        ? 'border-indigo-600'
+                        : 'border-transparent hover:border-gray-300'
+                    }`}
+                  >
+                    <img
+                      src={img.image_url}
+                      alt={`Sample ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -154,47 +181,6 @@ export default function TemplateDetail() {
           </button>
         </div>
       </div>
-
-      {/* Sample Album Preview */}
-      {template.sample_images?.length > 0 && (
-        <div className="mt-10">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            Sample Album Preview
-          </h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Browse through the pages to see how your album will look with this template.
-          </p>
-          <AlbumPageView
-            pages={buildSamplePages(template)}
-            photosPerPage={template.photos_per_page}
-            totalPages={template.pages_count}
-            readOnly
-          />
-        </div>
-      )}
     </div>
   );
-}
-
-function buildSamplePages(template) {
-  const images = template.sample_images || [];
-  const perPage = template.photos_per_page || 1;
-  const pageCount = Math.max(
-    Math.ceil(images.length / perPage),
-    1
-  );
-
-  const pages = [];
-  for (let p = 0; p < pageCount; p++) {
-    const slots = [];
-    for (let s = 0; s < perPage; s++) {
-      const imgIdx = p * perPage + s;
-      slots.push({
-        position: s,
-        photo: images[imgIdx] ? { image_url: images[imgIdx].image_url } : null,
-      });
-    }
-    pages.push({ pageNumber: p + 1, slots });
-  }
-  return pages;
 }
