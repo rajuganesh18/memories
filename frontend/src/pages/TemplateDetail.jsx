@@ -12,6 +12,7 @@ export default function TemplateDetail() {
   const [template, setTemplate] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeImage, setActiveImage] = useState(0);
 
   useEffect(() => {
     getTemplate(id)
@@ -55,24 +56,55 @@ export default function TemplateDetail() {
       </Link>
 
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Template preview */}
-        <div className="aspect-square bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center">
-          {template.cover_image_url ? (
-            <img
-              src={template.cover_image_url}
-              alt={template.name}
-              className="w-full h-full object-cover rounded-xl"
-            />
-          ) : (
-            <div className="text-center">
-              <div className="text-6xl mb-4">
-                {template.theme === 'wedding' ? '💒' :
-                 template.theme === 'travel' ? '✈️' :
-                 template.theme === 'baby' ? '👶' :
-                 template.theme === 'birthday' ? '🎂' :
-                 template.theme === 'graduation' ? '🎓' : '📸'}
+        {/* Template preview / sample gallery */}
+        <div>
+          <div className="aspect-square bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center overflow-hidden">
+            {template.sample_images?.length > 0 ? (
+              <img
+                src={template.sample_images[activeImage]?.image_url}
+                alt={`${template.name} sample ${activeImage + 1}`}
+                className="w-full h-full object-cover"
+              />
+            ) : template.cover_image_url ? (
+              <img
+                src={template.cover_image_url}
+                alt={template.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="text-center">
+                <div className="text-6xl mb-4">
+                  {template.theme === 'wedding' ? '💒' :
+                   template.theme === 'travel' ? '✈️' :
+                   template.theme === 'baby' ? '👶' :
+                   template.theme === 'birthday' ? '🎂' :
+                   template.theme === 'graduation' ? '🎓' : '📸'}
+                </div>
+                <p className="text-gray-400">Template preview</p>
               </div>
-              <p className="text-gray-400">Template preview</p>
+            )}
+          </div>
+
+          {/* Thumbnail strip */}
+          {template.sample_images?.length > 1 && (
+            <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+              {template.sample_images.map((img, idx) => (
+                <button
+                  key={img.id}
+                  onClick={() => setActiveImage(idx)}
+                  className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition ${
+                    idx === activeImage
+                      ? 'border-indigo-600'
+                      : 'border-transparent hover:border-gray-300'
+                  }`}
+                >
+                  <img
+                    src={img.image_url}
+                    alt={`Sample ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
             </div>
           )}
         </div>

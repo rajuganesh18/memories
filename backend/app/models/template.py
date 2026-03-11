@@ -28,6 +28,9 @@ class AlbumTemplate(Base):
     template_sizes: Mapped[list["TemplateSize"]] = relationship(
         back_populates="template", cascade="all, delete-orphan"
     )
+    sample_images: Mapped[list["TemplateSampleImage"]] = relationship(
+        back_populates="template", cascade="all, delete-orphan", order_by="TemplateSampleImage.sort_order"
+    )
 
 
 class AlbumSize(Base):
@@ -66,3 +69,21 @@ class TemplateSize(Base):
 
     template: Mapped["AlbumTemplate"] = relationship(back_populates="template_sizes")
     size: Mapped["AlbumSize"] = relationship(back_populates="template_sizes")
+
+
+class TemplateSampleImage(Base):
+    __tablename__ = "template_sample_images"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    template_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("album_templates.id", ondelete="CASCADE"), index=True
+    )
+    image_url: Mapped[str] = mapped_column(String(500))
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+    template: Mapped["AlbumTemplate"] = relationship(back_populates="sample_images")
