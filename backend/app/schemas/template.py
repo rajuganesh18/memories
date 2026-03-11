@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -49,7 +50,6 @@ class AlbumTemplateCreate(BaseModel):
     theme: str
     cover_image_url: str | None = None
     pages_count: int = 20
-    photos_per_page: int = 1
 
 
 class AlbumTemplateUpdate(BaseModel):
@@ -58,7 +58,6 @@ class AlbumTemplateUpdate(BaseModel):
     theme: str | None = None
     cover_image_url: str | None = None
     pages_count: int | None = None
-    photos_per_page: int | None = None
     is_active: bool | None = None
 
 
@@ -90,6 +89,8 @@ class SlotPosition(BaseModel):
     y: float
     width: float
     height: float
+    shape: Literal["rect", "circle", "ellipse"] = "rect"
+    rotation: float = 0  # degrees
 
 
 class PageLayoutResponse(BaseModel):

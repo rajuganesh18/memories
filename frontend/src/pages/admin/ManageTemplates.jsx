@@ -21,7 +21,7 @@ export default function ManageTemplates() {
   const [showSizeForm, setShowSizeForm] = useState(false);
   const [showPricingForm, setShowPricingForm] = useState(null);
   const [form, setForm] = useState({
-    name: '', description: '', theme: 'wedding', pages_count: 20, photos_per_page: 1,
+    name: '', description: '', theme: 'wedding', pages_count: 20,
   });
   const [sizeForm, setSizeForm] = useState({
     label: '', width_inches: '', height_inches: '',
@@ -46,7 +46,7 @@ export default function ManageTemplates() {
       await adminCreateTemplate(form);
       toast.success('Template created');
       setShowForm(false);
-      setForm({ name: '', description: '', theme: 'wedding', pages_count: 20, photos_per_page: 1 });
+      setForm({ name: '', description: '', theme: 'wedding', pages_count: 20 });
       loadData();
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to create template');
@@ -237,15 +237,9 @@ export default function ManageTemplates() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full px-3 py-2 border rounded-lg" rows={2} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Pages</label>
-              <input type="number" value={form.pages_count} onChange={(e) => setForm({ ...form, pages_count: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-lg" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Photos per page</label>
-              <input type="number" value={form.photos_per_page} onChange={(e) => setForm({ ...form, photos_per_page: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-lg" />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Pages</label>
+            <input type="number" value={form.pages_count} onChange={(e) => setForm({ ...form, pages_count: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-lg" />
           </div>
           <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-lg">Create Template</button>
         </form>

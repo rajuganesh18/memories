@@ -235,7 +235,7 @@ export default function AlbumBuilder() {
             </div>
           )}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {Array.from({ length: currentLayout?.slots?.length || template?.photos_per_page || 1 }, (_, i) => (
+            {Array.from({ length: currentLayout?.slots?.length || 1 }, (_, i) => (
               <PhotoUploader
                 key={`${currentPage}-${i}`}
                 albumId={album.id}
