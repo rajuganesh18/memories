@@ -87,3 +87,28 @@ def admin_update_template_size(
     ts_id: str, data: TemplateSizeUpdate, db: Session = Depends(get_db)
 ):
     return update_template_size(db, ts_id, data)
+
+
+# --- Orders ---
+from app.schemas.order import OrderResponse, OrderStatusUpdate
+from app.services.order_service import get_all_orders, get_order_detail, update_order_status
+
+
+@router.get("/orders", response_model=list[OrderResponse])
+def admin_list_orders(
+    status: str | None = None,
+    db: Session = Depends(get_db),
+):
+    return get_all_orders(db, order_status=status)
+
+
+@router.get("/orders/{order_id}", response_model=OrderResponse)
+def admin_get_order(order_id: str, db: Session = Depends(get_db)):
+    return get_order_detail(db, order_id)
+
+
+@router.put("/orders/{order_id}/status")
+def admin_update_order_status(
+    order_id: str, data: OrderStatusUpdate, db: Session = Depends(get_db)
+):
+    return update_order_status(db, order_id, data.status)

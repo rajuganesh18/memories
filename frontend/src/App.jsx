@@ -7,8 +7,17 @@ import Register from './pages/Register';
 import TemplateGallery from './pages/TemplateGallery';
 import TemplateDetail from './pages/TemplateDetail';
 import AlbumBuilder from './pages/AlbumBuilder';
+import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
+import OrderConfirmation from './pages/OrderConfirmation';
+import DashboardLayout from './pages/dashboard/DashboardLayout';
+import Orders from './pages/dashboard/Orders';
+import OrderDetail from './pages/dashboard/OrderDetail';
+import Addresses from './pages/dashboard/Addresses';
+import Profile from './pages/dashboard/Profile';
 import AdminDashboard from './pages/admin/Dashboard';
 import ManageTemplates from './pages/admin/ManageTemplates';
+import ManageOrders from './pages/admin/ManageOrders';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -56,23 +65,31 @@ export default function App() {
           element={<ProtectedRoute><AlbumBuilder /></ProtectedRoute>}
         />
 
-        {/* Protected routes */}
+        {/* Cart & Checkout */}
         <Route
           path="cart"
-          element={
-            <ProtectedRoute>
-              <div className="p-8 text-center text-gray-500">Cart - Coming in Phase 4</div>
-            </ProtectedRoute>
-          }
+          element={<ProtectedRoute><Cart /></ProtectedRoute>}
         />
         <Route
-          path="dashboard/*"
-          element={
-            <ProtectedRoute>
-              <div className="p-8 text-center text-gray-500">Dashboard - Coming in Phase 5</div>
-            </ProtectedRoute>
-          }
+          path="checkout"
+          element={<ProtectedRoute><Checkout /></ProtectedRoute>}
         />
+        <Route
+          path="order-confirmation/:orderId"
+          element={<ProtectedRoute><OrderConfirmation /></ProtectedRoute>}
+        />
+
+        {/* User Dashboard */}
+        <Route
+          path="dashboard"
+          element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}
+        >
+          <Route index element={<Navigate to="orders" replace />} />
+          <Route path="orders" element={<Orders />} />
+          <Route path="orders/:orderId" element={<OrderDetail />} />
+          <Route path="addresses" element={<Addresses />} />
+          <Route path="profile" element={<Profile />} />
+        </Route>
 
         {/* Admin routes */}
         <Route
@@ -85,11 +102,7 @@ export default function App() {
         />
         <Route
           path="admin/orders"
-          element={
-            <AdminRoute>
-              <div className="p-8 text-center text-gray-500">Order Management - Coming in Phase 5</div>
-            </AdminRoute>
-          }
+          element={<AdminRoute><ManageOrders /></AdminRoute>}
         />
       </Route>
     </Routes>
