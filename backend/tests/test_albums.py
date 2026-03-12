@@ -25,7 +25,7 @@ def _setup_user_and_template(client, db):
     }, headers=admin_headers).json()
 
     template = client.post("/api/v1/admin/templates", json={
-        "name": "Test Template", "theme": "wedding", "pages_count": 10, "photos_per_page": 2,
+        "name": "Test Template", "theme": "wedding", "photos_required": 10,
     }, headers=admin_headers).json()
 
     ts = client.post("/api/v1/admin/template-sizes", json={

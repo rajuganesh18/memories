@@ -31,14 +31,14 @@ export default function TemplateCard({ template }) {
           {template.name}
         </h3>
         <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-          {template.description || `${template.pages_count} pages`}
+          {template.description || `${template.photos_required} photos`}
         </p>
         <div className="flex items-center justify-between mt-3">
           <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full capitalize">
             {template.theme}
           </span>
           <span className="text-xs text-gray-400">
-            {template.pages_count} pages
+            {template.photos_required} photos
           </span>
         </div>
       </div>

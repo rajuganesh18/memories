@@ -46,8 +46,7 @@ def test_admin_create_template(client, db):
             "name": "Classic Wedding",
             "description": "Elegant wedding album",
             "theme": "wedding",
-            "pages_count": 24,
-            "photos_per_page": 1,
+            "photos_required": 24,
         },
         headers=headers,
     )
@@ -72,7 +71,7 @@ def test_admin_create_template_size_pricing(client, db):
     # Create template
     tmpl_res = client.post(
         "/api/v1/admin/templates",
-        json={"name": "Travel Adventure", "theme": "travel", "pages_count": 20},
+        json={"name": "Travel Adventure", "theme": "travel", "photos_required": 20},
         headers=headers,
     )
     template_id = tmpl_res.json()["id"]
@@ -93,7 +92,7 @@ def test_list_templates_public(client, db):
     # Create a template
     client.post(
         "/api/v1/admin/templates",
-        json={"name": "Baby Memories", "theme": "baby", "pages_count": 16},
+        json={"name": "Baby Memories", "theme": "baby", "photos_required": 16},
         headers=headers,
     )
 

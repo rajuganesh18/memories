@@ -41,8 +41,7 @@ class AlbumTemplateInfo(BaseModel):
     id: str
     name: str
     theme: str
-    pages_count: int
-    photos_per_page: int
+    photos_required: int
 
     model_config = {"from_attributes": True}
 

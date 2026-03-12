@@ -150,7 +150,7 @@ export default function TemplateDetail() {
           </p>
 
           <div className="flex gap-6 mb-6 text-sm text-gray-500">
-            <span>{template.pages_count} pages</span>
+            <span>{template.photos_required} photos required</span>
           </div>
 
           <h2 className="text-lg font-semibold text-gray-900 mb-3">
