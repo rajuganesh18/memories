@@ -1,6 +1,5 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Literal
 
 from pydantic import BaseModel
 
@@ -49,7 +48,7 @@ class AlbumTemplateCreate(BaseModel):
     description: str | None = None
     theme: str
     cover_image_url: str | None = None
-    pages_count: int = 20
+    photos_required: int = 20
 
 
 class AlbumTemplateUpdate(BaseModel):
@@ -57,7 +56,7 @@ class AlbumTemplateUpdate(BaseModel):
     description: str | None = None
     theme: str | None = None
     cover_image_url: str | None = None
-    pages_count: int | None = None
+    photos_required: int | None = None
     is_active: bool | None = None
 
 
@@ -67,8 +66,7 @@ class AlbumTemplateResponse(BaseModel):
     description: str | None
     theme: str
     cover_image_url: str | None
-    pages_count: int
-    photos_per_page: int
+    photos_required: int
     is_active: bool
     created_at: datetime
 
@@ -83,30 +81,6 @@ class SampleImageResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
-# --- TemplatePageLayout schemas ---
-class SlotPosition(BaseModel):
-    x: float  # percentage 0-100
-    y: float
-    width: float
-    height: float
-    shape: Literal["rect", "circle", "ellipse"] = "rect"
-    rotation: float = 0  # degrees
-
-
-class PageLayoutResponse(BaseModel):
-    id: str
-    page_number: int
-    background_image_url: str | None
-    slots: list[SlotPosition]
-
-    model_config = {"from_attributes": True}
-
-
-class PageLayoutUpdate(BaseModel):
-    slots: list[SlotPosition]
-
-
 class AlbumTemplateDetailResponse(AlbumTemplateResponse):
     template_sizes: list[TemplateSizeResponse]
     sample_images: list[SampleImageResponse] = []
-    page_layouts: list[PageLayoutResponse] = []

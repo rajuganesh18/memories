@@ -31,20 +31,3 @@ export const adminUploadSampleImage = (templateId, file) => {
 
 export const adminDeleteSampleImage = (templateId, imageId) =>
   api.delete(`/admin/templates/${templateId}/sample-images/${imageId}`);
-
-// Page layout endpoints
-export const adminUploadPageBackground = (templateId, pageNumber, file) => {
-  const formData = new FormData();
-  formData.append('file', file);
-  return api.post(
-    `/admin/templates/${templateId}/pages/${pageNumber}/background`,
-    formData,
-    { headers: { 'Content-Type': 'multipart/form-data' } }
-  );
-};
-
-export const adminUpdatePageSlots = (templateId, pageNumber, slots) =>
-  api.put(`/admin/templates/${templateId}/pages/${pageNumber}/slots`, { slots });
-
-export const adminDeletePageLayout = (templateId, pageNumber) =>
-  api.delete(`/admin/templates/${templateId}/pages/${pageNumber}`);

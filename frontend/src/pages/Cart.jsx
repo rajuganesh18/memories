@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { getAlbum } from '../api/albums';
-import { getTemplate } from '../api/templates';
 import toast from 'react-hot-toast';
-import CanvasAlbumPage from '../components/albums/CanvasAlbumPage';
 
 export default function Cart() {
   const { cart, loading, updateItem, removeItem, clearCartItems } = useCart();
@@ -60,21 +58,10 @@ export default function Cart() {
   };
 
   const handlePreview = async (album) => {
-    const templateId = album.template_size?.template?.id;
-    if (!templateId) {
-      toast.error('Template info not available');
-      return;
-    }
     setPreviewLoading(true);
     try {
-      const [albumRes, templateRes] = await Promise.all([
-        getAlbum(album.id),
-        getTemplate(templateId),
-      ]);
-      setPreview({
-        album: albumRes.data,
-        pageLayouts: templateRes.data.page_layouts || [],
-      });
+      const res = await getAlbum(album.id);
+      setPreview(res.data);
     } catch {
       toast.error('Failed to load preview');
     } finally {
@@ -148,32 +135,14 @@ export default function Cart() {
 
       {/* Album preview modal */}
       {preview && (
-        <AlbumPreviewModal
-          album={preview.album}
-          pageLayouts={preview.pageLayouts}
-          onClose={() => setPreview(null)}
-        />
+        <AlbumPreviewModal album={preview} onClose={() => setPreview(null)} />
       )}
     </div>
   );
 }
 
-function AlbumPreviewModal({ album, pageLayouts, onClose }) {
-  const [activePage, setActivePage] = useState(0);
-
-  const photosByPage = {};
-  (album.photos || []).forEach((p) => {
-    if (!photosByPage[p.page_number]) photosByPage[p.page_number] = [];
-    photosByPage[p.page_number].push(p);
-  });
-
-  // Show pages that have photos, or all layouts
-  const pagesWithPhotos = pageLayouts.filter(
-    (l) => photosByPage[l.page_number]?.length > 0
-  );
-  const pagesToShow = pagesWithPhotos.length > 0 ? pagesWithPhotos : pageLayouts;
-  const currentLayout = pagesToShow[activePage] || pagesToShow[0];
-  const currentPhotos = currentLayout ? photosByPage[currentLayout.page_number] || [] : [];
+function AlbumPreviewModal({ album, onClose }) {
+  const photos = album.photos || [];
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -185,7 +154,7 @@ function AlbumPreviewModal({ album, pageLayouts, onClose }) {
           <div>
             <h2 className="text-xl font-bold text-gray-900">{album.title}</h2>
             <p className="text-sm text-gray-500">
-              {album.template_size?.template?.name} &middot; {album.photos?.length || 0} photos
+              {album.template_size?.template?.name} &middot; {photos.length} photos
             </p>
           </div>
           <button
@@ -196,53 +165,19 @@ function AlbumPreviewModal({ album, pageLayouts, onClose }) {
           </button>
         </div>
 
-        {currentLayout ? (
-          <>
-            <CanvasAlbumPage
-              layout={currentLayout}
-              photos={currentPhotos}
-              width={Math.min(650, window.innerWidth - 100)}
-              readOnly
-            />
-
-            {pagesToShow.length > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-4">
-                <button
-                  onClick={() => setActivePage((p) => Math.max(0, p - 1))}
-                  disabled={activePage === 0}
-                  className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 transition"
-                >
-                  &larr; Prev
-                </button>
-                <span className="text-sm text-gray-500">
-                  Page {currentLayout.page_number} ({activePage + 1} of {pagesToShow.length})
-                </span>
-                <button
-                  onClick={() => setActivePage((p) => Math.min(pagesToShow.length - 1, p + 1))}
-                  disabled={activePage === pagesToShow.length - 1}
-                  className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 transition"
-                >
-                  Next &rarr;
-                </button>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="py-6">
-            <p className="text-gray-400 text-sm text-center mb-4">No page layouts available for canvas preview.</p>
-            {(album.photos || []).length > 0 && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {(album.photos || []).map((p) => (
-                  <img
-                    key={p.id}
-                    src={p.photo_url}
-                    alt="Album photo"
-                    className="w-full aspect-square object-cover rounded-lg"
-                  />
-                ))}
-              </div>
-            )}
+        {photos.length > 0 ? (
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            {photos.map((p) => (
+              <img
+                key={p.id}
+                src={p.photo_url}
+                alt="Album photo"
+                className="w-full aspect-square object-cover rounded-lg"
+              />
+            ))}
           </div>
+        ) : (
+          <p className="text-gray-400 text-center py-8">No photos in this album</p>
         )}
       </div>
     </div>

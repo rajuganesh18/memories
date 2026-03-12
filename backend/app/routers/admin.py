@@ -11,24 +11,21 @@ from app.schemas.template import (
     AlbumTemplateDetailResponse,
     AlbumTemplateResponse,
     AlbumTemplateUpdate,
+    SampleImageResponse,
     TemplateSizeCreate,
     TemplateSizeUpdate,
 )
-from app.schemas.template import PageLayoutResponse, PageLayoutUpdate, SampleImageResponse
 from app.services.template_service import (
     create_size,
     create_template,
     create_template_size,
-    delete_page_layout,
     delete_sample_image,
     delete_template,
     get_sizes,
     get_template_detail,
     get_templates,
-    update_page_slots,
     update_template,
     update_template_size,
-    upload_page_background,
     upload_sample_image,
 )
 
@@ -114,41 +111,6 @@ def admin_delete_sample_image(
     template_id: str, image_id: str, db: Session = Depends(get_db)
 ):
     delete_sample_image(db, template_id, image_id)
-
-
-# --- Page Layouts ---
-@router.post(
-    "/templates/{template_id}/pages/{page_number}/background",
-    response_model=PageLayoutResponse,
-    status_code=201,
-)
-def admin_upload_page_background(
-    template_id: str,
-    page_number: int,
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db),
-):
-    return upload_page_background(db, template_id, page_number, file)
-
-
-@router.put(
-    "/templates/{template_id}/pages/{page_number}/slots",
-    response_model=PageLayoutResponse,
-)
-def admin_update_page_slots(
-    template_id: str,
-    page_number: int,
-    data: PageLayoutUpdate,
-    db: Session = Depends(get_db),
-):
-    return update_page_slots(db, template_id, page_number, data)
-
-
-@router.delete("/templates/{template_id}/pages/{page_number}", status_code=204)
-def admin_delete_page_layout(
-    template_id: str, page_number: int, db: Session = Depends(get_db)
-):
-    delete_page_layout(db, template_id, page_number)
 
 
 # --- Orders ---

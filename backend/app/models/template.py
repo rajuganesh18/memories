@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, JSON, Numeric, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -18,8 +18,7 @@ class AlbumTemplate(Base):
     description: Mapped[str] = mapped_column(Text, nullable=True)
     theme: Mapped[str] = mapped_column(String(50), index=True)
     cover_image_url: Mapped[str] = mapped_column(String(500), nullable=True)
-    pages_count: Mapped[int] = mapped_column(Integer, default=20)
-    photos_per_page: Mapped[int] = mapped_column(Integer, default=1)
+    photos_required: Mapped[int] = mapped_column(Integer, default=20)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
@@ -30,9 +29,6 @@ class AlbumTemplate(Base):
     )
     sample_images: Mapped[list["TemplateSampleImage"]] = relationship(
         back_populates="template", cascade="all, delete-orphan", order_by="TemplateSampleImage.sort_order"
-    )
-    page_layouts: Mapped[list["TemplatePageLayout"]] = relationship(
-        back_populates="template", cascade="all, delete-orphan", order_by="TemplatePageLayout.page_number"
     )
 
 
@@ -92,30 +88,3 @@ class TemplateSampleImage(Base):
     template: Mapped["AlbumTemplate"] = relationship(back_populates="sample_images")
 
 
-class TemplatePageLayout(Base):
-    """Defines the layout for each page of a template.
-
-    background_image_url: the designed page background/frame image
-    slots: JSON array of photo placeholder regions, each with:
-        {x, y, width, height} as percentages (0-100) of the page dimensions
-    """
-
-    __tablename__ = "template_page_layouts"
-    __table_args__ = (
-        UniqueConstraint("template_id", "page_number", name="uq_template_page"),
-    )
-
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
-    template_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("album_templates.id", ondelete="CASCADE"), index=True
-    )
-    page_number: Mapped[int] = mapped_column(Integer)
-    background_image_url: Mapped[str] = mapped_column(String(500), nullable=True)
-    slots: Mapped[list] = mapped_column(JSON, default=list)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
-    )
-
-    template: Mapped["AlbumTemplate"] = relationship(back_populates="page_layouts")

@@ -12,7 +12,6 @@ import {
   adminDeleteSampleImage,
   getTemplate,
 } from '../../api/templates';
-import PageLayoutEditor from '../../components/admin/PageLayoutEditor';
 
 export default function ManageTemplates() {
   const [templates, setTemplates] = useState([]);
@@ -21,17 +20,15 @@ export default function ManageTemplates() {
   const [showSizeForm, setShowSizeForm] = useState(false);
   const [showPricingForm, setShowPricingForm] = useState(null);
   const [form, setForm] = useState({
-    name: '', description: '', theme: 'wedding', pages_count: 20,
+    name: '', description: '', theme: 'wedding', photos_required: 20,
   });
   const [sizeForm, setSizeForm] = useState({
     label: '', width_inches: '', height_inches: '',
   });
   const [pricingForm, setPricingForm] = useState({ size_id: '', price: '' });
-  const [samplePanel, setSamplePanel] = useState(null); // template id
+  const [samplePanel, setSamplePanel] = useState(null);
   const [sampleImages, setSampleImages] = useState([]);
   const [uploading, setUploading] = useState(false);
-  const [layoutPanel, setLayoutPanel] = useState(null); // template id
-  const [layoutData, setLayoutData] = useState([]);
 
   const loadData = () => {
     adminGetTemplates().then((r) => setTemplates(r.data)).catch(() => {});
@@ -46,7 +43,7 @@ export default function ManageTemplates() {
       await adminCreateTemplate(form);
       toast.success('Template created');
       setShowForm(false);
-      setForm({ name: '', description: '', theme: 'wedding', pages_count: 20 });
+      setForm({ name: '', description: '', theme: 'wedding', photos_required: 20 });
       loadData();
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to create template');
@@ -124,25 +121,6 @@ export default function ManageTemplates() {
       loadSampleImages(templateId);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Delete failed');
-    }
-  };
-
-  const toggleLayoutPanel = (templateId) => {
-    if (layoutPanel === templateId) {
-      setLayoutPanel(null);
-      setLayoutData([]);
-    } else {
-      setLayoutPanel(templateId);
-      loadLayoutData(templateId);
-    }
-  };
-
-  const loadLayoutData = async (templateId) => {
-    try {
-      const res = await getTemplate(templateId);
-      setLayoutData(res.data.page_layouts || []);
-    } catch {
-      setLayoutData([]);
     }
   };
 
@@ -238,8 +216,8 @@ export default function ManageTemplates() {
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full px-3 py-2 border rounded-lg" rows={2} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Pages</label>
-            <input type="number" value={form.pages_count} onChange={(e) => setForm({ ...form, pages_count: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-lg" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Photos Required</label>
+            <input type="number" min="1" value={form.photos_required} onChange={(e) => setForm({ ...form, photos_required: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-lg" />
           </div>
           <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-lg">Create Template</button>
         </form>
@@ -258,12 +236,9 @@ export default function ManageTemplates() {
                   </span>
                   <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full capitalize">{t.theme}</span>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">{t.description || 'No description'} &middot; {t.pages_count} pages</p>
+                <p className="text-sm text-gray-500 mt-1">{t.description || 'No description'} &middot; {t.photos_required} photos required</p>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => toggleLayoutPanel(t.id)} className="text-xs bg-teal-50 text-teal-600 px-3 py-1 rounded-lg hover:bg-teal-100">
-                  {layoutPanel === t.id ? 'Hide Layouts' : 'Page Layouts'}
-                </button>
                 <button onClick={() => toggleSamplePanel(t.id)} className="text-xs bg-purple-50 text-purple-600 px-3 py-1 rounded-lg hover:bg-purple-100">
                   {samplePanel === t.id ? 'Hide Samples' : 'Samples'}
                 </button>
@@ -341,21 +316,6 @@ export default function ManageTemplates() {
                     ))}
                   </div>
                 )}
-              </div>
-            )}
-
-            {/* Page layout editor panel */}
-            {layoutPanel === t.id && (
-              <div className="mt-3 border-t pt-3">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">
-                  Page Layouts — Upload backgrounds and define photo slot regions
-                </h4>
-                <PageLayoutEditor
-                  templateId={t.id}
-                  pagesCount={t.pages_count}
-                  existingLayouts={layoutData}
-                  onUpdate={() => loadLayoutData(t.id)}
-                />
               </div>
             )}
           </div>

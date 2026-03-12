@@ -24,7 +24,7 @@ def create_razorpay_order(db: Session, order_id: str, user_id: str):
     # razorpay_order_id = rz_order["id"]
 
     # For development/testing, generate a mock order ID
-    razorpay_order_id = f"order_{order.id[:20]}"
+    razorpay_order_id = f"mock_{order.id[:20]}"
 
     order.razorpay_order_id = razorpay_order_id
     db.commit()
