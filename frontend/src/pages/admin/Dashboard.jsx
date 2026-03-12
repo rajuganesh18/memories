@@ -24,7 +24,7 @@ export default function AdminDashboard() {
       description: 'Manage album templates, sizes, and pricing',
       stat: stats.templates,
       statLabel: 'active templates',
-      color: 'bg-indigo-50 text-indigo-700',
+      color: 'bg-terra/10 text-terra',
     },
     {
       to: '/admin/orders',
@@ -32,29 +32,29 @@ export default function AdminDashboard() {
       description: 'View and manage customer orders',
       stat: stats.orders,
       statLabel: 'total orders',
-      color: 'bg-green-50 text-green-700',
+      color: 'bg-olive/10 text-olive',
     },
   ];
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Admin Dashboard</h1>
+      <h1 className="font-serif text-2xl font-bold text-brown mb-6">Admin Dashboard</h1>
 
       <div className="grid sm:grid-cols-2 gap-4 mb-8">
         {cards.map((card) => (
           <Link
             key={card.to}
             to={card.to}
-            className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition border"
+            className="bg-warm-white p-6 rounded-2xl hover:border-terra/30 transition border border-warm-border"
           >
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="font-semibold text-gray-900 mb-1">{card.title}</h3>
-                <p className="text-sm text-gray-500">{card.description}</p>
+                <h3 className="font-serif font-bold text-brown mb-1">{card.title}</h3>
+                <p className="text-sm text-taupe font-sans">{card.description}</p>
               </div>
-              <div className={`text-right px-3 py-1 rounded-lg ${card.color}`}>
-                <p className="text-2xl font-bold">{card.stat}</p>
-                <p className="text-xs">{card.statLabel}</p>
+              <div className={`text-right px-3 py-1 rounded-xl ${card.color}`}>
+                <p className="text-2xl font-bold font-sans">{card.stat}</p>
+                <p className="text-xs font-sans">{card.statLabel}</p>
               </div>
             </div>
           </Link>

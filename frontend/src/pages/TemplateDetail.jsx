@@ -35,15 +35,15 @@ export default function TemplateDetail() {
   };
 
   if (loading) {
-    return <div className="p-8 text-center text-gray-400">Loading...</div>;
+    return <div className="p-8 text-center text-taupe-light font-sans">Loading...</div>;
   }
 
   if (!template) {
     return (
       <div className="p-8 text-center">
-        <p className="text-gray-400 text-lg">Template not found</p>
-        <Link to="/templates" className="text-indigo-600 hover:underline mt-2 inline-block">
-          Back to templates
+        <p className="text-taupe text-lg font-serif">Template not found</p>
+        <Link to="/templates" className="text-terra hover:text-terra-dark mt-2 inline-block font-sans text-sm">
+          Back to collections
         </Link>
       </div>
     );
@@ -54,14 +54,15 @@ export default function TemplateDetail() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <Link to="/templates" className="text-indigo-600 hover:underline text-sm mb-4 inline-block">
-        &larr; Back to templates
+      <Link to="/templates" className="text-terra hover:text-terra-dark text-sm mb-6 inline-flex items-center gap-1 font-sans font-medium">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+        Back to collections
       </Link>
 
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid md:grid-cols-2 gap-10">
         {/* Sample album gallery */}
         <div>
-          <div className="aspect-square bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center overflow-hidden relative">
+          <div className="aspect-square bg-cream-dark rounded-2xl flex items-center justify-center overflow-hidden relative">
             {hasSamples ? (
               <img
                 src={sampleImages[activeImage]?.image_url}
@@ -76,14 +77,12 @@ export default function TemplateDetail() {
               />
             ) : (
               <div className="text-center">
-                <div className="text-6xl mb-4">
-                  {template.theme === 'wedding' ? '💒' :
-                   template.theme === 'travel' ? '✈️' :
-                   template.theme === 'baby' ? '👶' :
-                   template.theme === 'birthday' ? '🎂' :
-                   template.theme === 'graduation' ? '🎓' : '📸'}
+                <div className="w-20 h-20 bg-warm-gray/50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-10 h-10 text-taupe-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
                 </div>
-                <p className="text-gray-400">No sample images yet</p>
+                <p className="text-taupe-light font-sans text-sm">No sample images yet</p>
               </div>
             )}
 
@@ -93,25 +92,25 @@ export default function TemplateDetail() {
                 <button
                   onClick={() => setActiveImage((i) => Math.max(0, i - 1))}
                   disabled={activeImage === 0}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-700 w-8 h-8 rounded-full flex items-center justify-center shadow disabled:opacity-30 transition"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-brown w-9 h-9 rounded-full flex items-center justify-center shadow-md disabled:opacity-30 transition"
                 >
-                  &larr;
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                 </button>
                 <button
                   onClick={() => setActiveImage((i) => Math.min(sampleImages.length - 1, i + 1))}
                   disabled={activeImage === sampleImages.length - 1}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-700 w-8 h-8 rounded-full flex items-center justify-center shadow disabled:opacity-30 transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-brown w-9 h-9 rounded-full flex items-center justify-center shadow-md disabled:opacity-30 transition"
                 >
-                  &rarr;
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 </button>
               </>
             )}
           </div>
 
-          {/* Page indicator + thumbnails */}
+          {/* Thumbnails */}
           {sampleImages.length > 1 && (
-            <div className="mt-3">
-              <p className="text-xs text-gray-400 text-center mb-2">
+            <div className="mt-4">
+              <p className="text-xs text-taupe-light text-center mb-2 font-sans">
                 {activeImage + 1} of {sampleImages.length}
               </p>
               <div className="flex gap-2 overflow-x-auto pb-1 justify-center">
@@ -119,10 +118,10 @@ export default function TemplateDetail() {
                   <button
                     key={img.id}
                     onClick={() => setActiveImage(idx)}
-                    className={`flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition ${
+                    className={`flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden border-2 transition ${
                       idx === activeImage
-                        ? 'border-indigo-600'
-                        : 'border-transparent hover:border-gray-300'
+                        ? 'border-terra'
+                        : 'border-transparent hover:border-warm-gray'
                     }`}
                   >
                     <img
@@ -139,21 +138,24 @@ export default function TemplateDetail() {
 
         {/* Template info */}
         <div>
-          <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full capitalize">
+          <span className="text-xs bg-cream-dark text-taupe px-3 py-1 rounded-full capitalize font-sans font-medium">
             {template.theme}
           </span>
-          <h1 className="text-3xl font-bold text-gray-900 mt-3 mb-2">
+          <h1 className="font-serif text-3xl font-bold text-brown mt-4 mb-3">
             {template.name}
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-taupe mb-6 font-sans leading-relaxed">
             {template.description || 'A beautifully designed album template.'}
           </p>
 
-          <div className="flex gap-6 mb-6 text-sm text-gray-500">
-            <span>{template.photos_required} photos required</span>
+          <div className="flex gap-6 mb-8 text-sm text-taupe font-sans">
+            <span className="flex items-center gap-1.5">
+              <svg className="w-4 h-4 text-terra" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              {template.photos_required} photos required
+            </span>
           </div>
 
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">
+          <h2 className="font-serif text-lg font-bold text-brown mb-3">
             Select Size
           </h2>
           {template.template_sizes?.length > 0 ? (
@@ -163,18 +165,33 @@ export default function TemplateDetail() {
               onSelect={setSelectedSize}
             />
           ) : (
-            <p className="text-gray-400">No sizes available for this template</p>
+            <p className="text-taupe-light font-sans text-sm">No sizes available for this template</p>
           )}
 
           <button
             onClick={handleCreateAlbum}
             disabled={!selectedSize}
-            className="w-full mt-6 bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full mt-8 bg-terra text-white py-3.5 rounded-full font-semibold hover:bg-terra-dark transition disabled:opacity-50 disabled:cursor-not-allowed font-sans tracking-wide"
           >
             {selectedSize
-              ? `Create Album - ₹${Number(selectedSize.price).toLocaleString('en-IN')}`
+              ? `Create Album — ₹${Number(selectedSize.price).toLocaleString('en-IN')}`
               : 'Select a size to continue'}
           </button>
+
+          <div className="mt-6 flex flex-wrap gap-4 text-xs text-taupe font-sans">
+            <span className="flex items-center gap-1">
+              <svg className="w-3.5 h-3.5 text-terra" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+              Free Shipping
+            </span>
+            <span className="flex items-center gap-1">
+              <svg className="w-3.5 h-3.5 text-terra" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+              Premium Quality
+            </span>
+            <span className="flex items-center gap-1">
+              <svg className="w-3.5 h-3.5 text-terra" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+              Happiness Guarantee
+            </span>
+          </div>
         </div>
       </div>
     </div>
