@@ -107,6 +107,10 @@ export default function Checkout() {
         },
       };
 
+      if (!window.Razorpay) {
+        toast.error('Payment gateway not loaded. Please refresh and try again.');
+        return;
+      }
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
