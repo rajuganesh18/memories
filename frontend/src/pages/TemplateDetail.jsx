@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { getTemplate } from '../api/templates';
 import { useAuth } from '../context/AuthContext';
 import SizeSelector from '../components/templates/SizeSelector';
+import DoodleOverlay from '../components/templates/DoodleOverlay';
 
 export default function TemplateDetail() {
   const { id } = useParams();
@@ -62,7 +63,7 @@ export default function TemplateDetail() {
       <div className="grid md:grid-cols-2 gap-10">
         {/* Sample album gallery */}
         <div>
-          <div className="aspect-square bg-cream-dark rounded-2xl flex items-center justify-center overflow-hidden relative">
+          <div className="aspect-square bg-white rounded-2xl flex items-center justify-center overflow-hidden relative border border-warm-border">
             {hasSamples ? (
               <img
                 src={sampleImages[activeImage]?.image_url}
@@ -76,13 +77,18 @@ export default function TemplateDetail() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="text-center">
-                <div className="w-20 h-20 bg-warm-gray/50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-10 h-10 text-taupe-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
+              /* Doodle preview for templates without images */
+              <div className="relative w-full h-full flex items-center justify-center">
+                <DoodleOverlay theme={template.theme} className="absolute inset-0 w-full h-full opacity-60" />
+                <div className="relative z-10 text-center px-8">
+                  <div className="w-16 h-px bg-terra/30 mx-auto mb-4" />
+                  <p className="font-serif text-2xl font-bold text-brown/70 mb-2">{template.name}</p>
+                  <p className="text-taupe-light text-xs font-sans tracking-wider uppercase">Album Template</p>
+                  <div className="w-16 h-px bg-terra/30 mx-auto mt-4" />
+                  <p className="text-taupe-light/60 text-xs font-sans mt-6">
+                    Minimal doodle design on white pages
+                  </p>
                 </div>
-                <p className="text-taupe-light font-sans text-sm">No sample images yet</p>
               </div>
             )}
 
@@ -134,6 +140,25 @@ export default function TemplateDetail() {
               </div>
             </div>
           )}
+
+          {/* Doodle style preview - small pages */}
+          {!hasSamples && (
+            <div className="mt-6">
+              <p className="text-xs text-taupe font-sans font-medium mb-3 text-center">Page Design Preview</p>
+              <div className="flex justify-center gap-3">
+                {[1, 2, 3].map((n) => (
+                  <div key={n} className="w-20 h-20 bg-white rounded-lg border border-warm-border relative overflow-hidden shadow-sm">
+                    <DoodleOverlay theme={template.theme} className="absolute inset-0 w-full h-full opacity-50" />
+                    <div className="absolute inset-3 border border-dashed border-taupe-light/30 rounded flex items-center justify-center">
+                      <svg className="w-4 h-4 text-taupe-light/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Template info */}
@@ -148,11 +173,26 @@ export default function TemplateDetail() {
             {template.description || 'A beautifully designed album template.'}
           </p>
 
-          <div className="flex gap-6 mb-8 text-sm text-taupe font-sans">
-            <span className="flex items-center gap-1.5">
-              <svg className="w-4 h-4 text-terra" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-              {template.photos_required} photos required
-            </span>
+          <div className="bg-cream-dark/50 rounded-xl p-4 mb-6">
+            <h3 className="text-sm font-semibold text-brown font-sans mb-2">What you get</h3>
+            <ul className="space-y-1.5 text-sm text-taupe font-sans">
+              <li className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-terra flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                Minimal hand-drawn doodle design
+              </li>
+              <li className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-terra flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                {template.photos_required} photo slots on clean white pages
+              </li>
+              <li className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-terra flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                Premium hardcover binding
+              </li>
+              <li className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-terra flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                Book-like preview before ordering
+              </li>
+            </ul>
           </div>
 
           <h2 className="font-serif text-lg font-bold text-brown mb-3">
