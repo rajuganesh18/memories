@@ -135,16 +135,35 @@ PRICE_MAP = {
 
 
 def seed_templates() -> None:
-    """Delete all existing templates and create fresh minimal doodle templates."""
+    """Seed minimal doodle templates. Idempotent — skips if templates already exist."""
     db: Session = SessionLocal()
     try:
-        # Delete all existing templates (cascade deletes sizes, sample images)
+        # Check if our templates already exist (use first template name as marker)
+        existing = db.query(AlbumTemplate).filter(
+            AlbumTemplate.name == TEMPLATE_DATA[0]["name"]
+        ).first()
+        if existing:
+            logger.info("Templates already seeded — skipping")
+            return
+
+        # Clear any old templates that don't match our new set.
+        # Must respect FK chain: order_items → orders → cart_items → albums → template_sizes
+        from app.models.album import AlbumPhoto, Album
+        from app.models.order import OrderItem, Order
+        from app.models.cart import CartItem, Cart
+
+        db.query(OrderItem).delete()
+        db.query(Order).delete()
+        db.query(CartItem).delete()
+        db.query(Cart).delete()
+        db.query(AlbumPhoto).delete()
+        db.query(Album).delete()
         db.query(TemplateSampleImage).delete()
         db.query(TemplateSize).delete()
         db.query(AlbumTemplate).delete()
         db.query(AlbumSize).delete()
         db.commit()
-        logger.info("Deleted all existing templates and sizes")
+        logger.info("Deleted all existing templates and dependent records")
 
         # Create sizes
         sizes = {}
