@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import DoodleOverlay from './DoodleOverlay';
 
 export default function TemplateCard({ template }) {
   return (
@@ -6,7 +7,7 @@ export default function TemplateCard({ template }) {
       to={`/templates/${template.id}`}
       className="group bg-warm-white rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-warm-border"
     >
-      <div className="aspect-[4/3] bg-cream-dark flex items-center justify-center overflow-hidden">
+      <div className="aspect-[4/3] bg-white flex items-center justify-center overflow-hidden relative">
         {template.cover_image_url ? (
           <img
             src={template.cover_image_url}
@@ -14,13 +15,15 @@ export default function TemplateCard({ template }) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="text-center p-4">
-            <div className="w-16 h-16 bg-warm-gray/50 rounded-2xl flex items-center justify-center mx-auto mb-2">
-              <svg className="w-8 h-8 text-taupe-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
+          /* Minimal doodle cover */
+          <div className="relative w-full h-full flex items-center justify-center">
+            <DoodleOverlay theme={template.theme} className="absolute inset-0 w-full h-full opacity-70" />
+            <div className="relative z-10 text-center px-4">
+              <div className="w-10 h-px bg-terra/30 mx-auto mb-3" />
+              <p className="font-serif text-lg font-bold text-brown/80">{template.name}</p>
+              <p className="text-xs text-taupe-light mt-1 font-sans capitalize">{template.theme}</p>
+              <div className="w-10 h-px bg-terra/30 mx-auto mt-3" />
             </div>
-            <p className="text-sm text-taupe-light capitalize font-sans">{template.theme}</p>
           </div>
         )}
       </div>

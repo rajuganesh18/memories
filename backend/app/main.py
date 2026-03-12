@@ -5,13 +5,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
-from app.core.seed import seed_admin_user
+from app.core.seed import seed_admin_user, seed_templates
 from app.routers import admin, albums, addresses, auth, cart, orders, payments, templates
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     seed_admin_user()
+    seed_templates()
     yield
 
 
