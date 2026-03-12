@@ -34,13 +34,14 @@ export default function Register() {
 
   return (
     <div className="min-h-[calc(100vh-12rem)] flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-sm p-8">
-        <h1 className="text-2xl font-bold text-gray-900 text-center mb-6">
-          Create Account
-        </h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="max-w-md w-full bg-warm-white rounded-2xl border border-warm-border p-8 sm:p-10">
+        <div className="text-center mb-8">
+          <h1 className="font-serif text-3xl font-bold text-brown">Create Account</h1>
+          <p className="text-taupe text-sm mt-2 font-sans">Start preserving your precious memories</p>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-brown-light mb-1.5 font-sans">
               Full Name
             </label>
             <input
@@ -49,12 +50,12 @@ export default function Register() {
               required
               value={form.full_name}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+              className="w-full px-4 py-3 border border-warm-border rounded-xl focus:ring-2 focus:ring-terra/30 focus:border-terra outline-none bg-cream font-sans text-sm transition"
               placeholder="John Doe"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-brown-light mb-1.5 font-sans">
               Email
             </label>
             <input
@@ -63,12 +64,12 @@ export default function Register() {
               required
               value={form.email}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+              className="w-full px-4 py-3 border border-warm-border rounded-xl focus:ring-2 focus:ring-terra/30 focus:border-terra outline-none bg-cream font-sans text-sm transition"
               placeholder="you@example.com"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-brown-light mb-1.5 font-sans">
               Phone (optional)
             </label>
             <input
@@ -76,12 +77,12 @@ export default function Register() {
               name="phone"
               value={form.phone}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+              className="w-full px-4 py-3 border border-warm-border rounded-xl focus:ring-2 focus:ring-terra/30 focus:border-terra outline-none bg-cream font-sans text-sm transition"
               placeholder="+91 9876543210"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-brown-light mb-1.5 font-sans">
               Password
             </label>
             <input
@@ -91,21 +92,21 @@ export default function Register() {
               minLength={6}
               value={form.password}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+              className="w-full px-4 py-3 border border-warm-border rounded-xl focus:ring-2 focus:ring-terra/30 focus:border-terra outline-none bg-cream font-sans text-sm transition"
               placeholder="At least 6 characters"
             />
           </div>
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition disabled:opacity-50"
+            className="w-full bg-terra text-white py-3 rounded-full font-semibold hover:bg-terra-dark transition disabled:opacity-50 font-sans tracking-wide"
           >
             {submitting ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="text-center text-sm text-taupe mt-8 font-sans">
           Already have an account?{' '}
-          <Link to="/login" className="text-indigo-600 hover:underline">
+          <Link to="/login" className="text-terra hover:text-terra-dark font-semibold">
             Sign In
           </Link>
         </p>

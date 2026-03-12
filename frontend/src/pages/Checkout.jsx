@@ -34,7 +34,7 @@ export default function Checkout() {
   if (items.length === 0) {
     return (
       <div className="max-w-4xl mx-auto p-8 text-center">
-        <p className="text-gray-500">Your cart is empty.</p>
+        <p className="text-taupe font-sans">Your cart is empty.</p>
       </div>
     );
   }
@@ -68,7 +68,6 @@ export default function Checkout() {
       const { data: order } = await createOrder(selectedAddress);
       const { data: payment } = await createPayment(order.id);
 
-      // In dev mode, mock payment verification directly
       if (payment.razorpay_order_id.startsWith('mock_')) {
         await verifyPayment({
           order_id: order.id,
@@ -82,7 +81,6 @@ export default function Checkout() {
         return;
       }
 
-      // Production Razorpay checkout
       const options = {
         key: payment.razorpay_key_id,
         amount: payment.amount,
@@ -122,17 +120,17 @@ export default function Checkout() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Checkout</h1>
+      <h1 className="font-serif text-2xl font-bold text-brown mb-8">Checkout</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Address selection */}
         <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-lg font-semibold">Delivery Address</h2>
+          <h2 className="font-serif text-lg font-bold text-brown">Delivery Address</h2>
 
           {addresses.map((addr) => (
             <label
               key={addr.id}
-              className={`block p-4 border rounded-lg cursor-pointer ${selectedAddress === addr.id ? 'border-indigo-600 bg-indigo-50' : 'hover:border-gray-400'}`}
+              className={`block p-4 border rounded-xl cursor-pointer transition ${selectedAddress === addr.id ? 'border-terra bg-terra/5' : 'border-warm-border hover:border-terra/40'}`}
             >
               <input
                 type="radio"
@@ -140,11 +138,11 @@ export default function Checkout() {
                 value={addr.id}
                 checked={selectedAddress === addr.id}
                 onChange={() => setSelectedAddress(addr.id)}
-                className="mr-2"
+                className="mr-2 accent-terra"
               />
-              <span className="font-medium">{addr.full_name}</span>
-              <span className="text-sm text-gray-500 ml-2">{addr.phone}</span>
-              <p className="text-sm text-gray-600 mt-1">
+              <span className="font-semibold text-brown font-sans">{addr.full_name}</span>
+              <span className="text-sm text-taupe ml-2 font-sans">{addr.phone}</span>
+              <p className="text-sm text-taupe mt-1 font-sans">
                 {addr.address_line1}{addr.address_line2 ? `, ${addr.address_line2}` : ''}, {addr.city}, {addr.state} - {addr.pincode}
               </p>
             </label>
@@ -153,65 +151,66 @@ export default function Checkout() {
           {!showForm && (
             <button
               onClick={() => setShowForm(true)}
-              className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+              className="text-terra hover:text-terra-dark text-sm font-semibold font-sans"
             >
               + Add New Address
             </button>
           )}
 
           {showForm && (
-            <form onSubmit={handleAddAddress} className="bg-white p-4 border rounded-lg space-y-3">
+            <form onSubmit={handleAddAddress} className="bg-warm-white p-5 border border-warm-border rounded-xl space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <input
                   placeholder="Full Name" required value={form.full_name}
                   onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-                  className="border rounded px-3 py-2 text-sm"
+                  className="border border-warm-border rounded-lg px-3 py-2.5 text-sm font-sans bg-cream focus:ring-2 focus:ring-terra/30 focus:border-terra outline-none"
                 />
                 <input
                   placeholder="Phone" required value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="border rounded px-3 py-2 text-sm"
+                  className="border border-warm-border rounded-lg px-3 py-2.5 text-sm font-sans bg-cream focus:ring-2 focus:ring-terra/30 focus:border-terra outline-none"
                 />
               </div>
               <input
                 placeholder="Address Line 1" required value={form.address_line1}
                 onChange={(e) => setForm({ ...form, address_line1: e.target.value })}
-                className="w-full border rounded px-3 py-2 text-sm"
+                className="w-full border border-warm-border rounded-lg px-3 py-2.5 text-sm font-sans bg-cream focus:ring-2 focus:ring-terra/30 focus:border-terra outline-none"
               />
               <input
                 placeholder="Address Line 2 (optional)" value={form.address_line2}
                 onChange={(e) => setForm({ ...form, address_line2: e.target.value })}
-                className="w-full border rounded px-3 py-2 text-sm"
+                className="w-full border border-warm-border rounded-lg px-3 py-2.5 text-sm font-sans bg-cream focus:ring-2 focus:ring-terra/30 focus:border-terra outline-none"
               />
               <div className="grid grid-cols-3 gap-3">
                 <input
                   placeholder="City" required value={form.city}
                   onChange={(e) => setForm({ ...form, city: e.target.value })}
-                  className="border rounded px-3 py-2 text-sm"
+                  className="border border-warm-border rounded-lg px-3 py-2.5 text-sm font-sans bg-cream focus:ring-2 focus:ring-terra/30 focus:border-terra outline-none"
                 />
                 <input
                   placeholder="State" required value={form.state}
                   onChange={(e) => setForm({ ...form, state: e.target.value })}
-                  className="border rounded px-3 py-2 text-sm"
+                  className="border border-warm-border rounded-lg px-3 py-2.5 text-sm font-sans bg-cream focus:ring-2 focus:ring-terra/30 focus:border-terra outline-none"
                 />
                 <input
                   placeholder="Pincode" required value={form.pincode}
                   onChange={(e) => setForm({ ...form, pincode: e.target.value })}
-                  className="border rounded px-3 py-2 text-sm"
+                  className="border border-warm-border rounded-lg px-3 py-2.5 text-sm font-sans bg-cream focus:ring-2 focus:ring-terra/30 focus:border-terra outline-none"
                 />
               </div>
-              <label className="flex items-center gap-2 text-sm">
+              <label className="flex items-center gap-2 text-sm font-sans text-taupe">
                 <input
                   type="checkbox" checked={form.is_default}
                   onChange={(e) => setForm({ ...form, is_default: e.target.checked })}
+                  className="accent-terra"
                 />
                 Set as default address
               </label>
               <div className="flex gap-2">
-                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700">
+                <button type="submit" className="bg-terra text-white px-5 py-2.5 rounded-full text-sm hover:bg-terra-dark font-sans font-semibold">
                   Save Address
                 </button>
-                <button type="button" onClick={() => setShowForm(false)} className="text-gray-500 text-sm">
+                <button type="button" onClick={() => setShowForm(false)} className="text-taupe text-sm font-sans">
                   Cancel
                 </button>
               </div>
@@ -220,23 +219,23 @@ export default function Checkout() {
         </div>
 
         {/* Order summary */}
-        <div className="bg-white p-6 border rounded-lg h-fit">
-          <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+        <div className="bg-warm-white p-6 border border-warm-border rounded-2xl h-fit">
+          <h2 className="font-serif text-lg font-bold text-brown mb-4">Order Summary</h2>
           {items.map((item) => (
-            <div key={item.id} className="flex justify-between text-sm mb-2">
+            <div key={item.id} className="flex justify-between text-sm mb-2 font-sans text-taupe">
               <span>{item.album?.title || 'Album'} x{item.quantity}</span>
               <span>&#8377;{((item.album?.template_size?.price || 0) * item.quantity).toFixed(2)}</span>
             </div>
           ))}
-          <hr className="my-3" />
-          <div className="flex justify-between font-bold">
-            <span>Total</span>
-            <span>&#8377;{total.toFixed(2)}</span>
+          <hr className="my-3 border-warm-border" />
+          <div className="flex justify-between font-bold font-sans">
+            <span className="text-brown">Total</span>
+            <span className="text-terra">&#8377;{total.toFixed(2)}</span>
           </div>
           <button
             onClick={handlePlaceOrder}
             disabled={processing}
-            className="w-full mt-4 bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
+            className="w-full mt-5 bg-terra text-white py-3.5 rounded-full hover:bg-terra-dark transition disabled:opacity-50 font-sans font-semibold tracking-wide"
           >
             {processing ? 'Processing...' : 'Place Order & Pay'}
           </button>
