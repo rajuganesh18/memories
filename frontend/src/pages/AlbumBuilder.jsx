@@ -197,17 +197,21 @@ export default function AlbumBuilder() {
             </div>
           </div>
 
-          {/* Uploaded photos grid */}
+          {/* Uploaded photos grid — larger previews to show clarity */}
           {uploadedPhotos.length > 0 && (
             <div className="mb-6">
-              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                {uploadedPhotos.map((photo) => (
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+                {uploadedPhotos.map((photo, idx) => (
                   <div key={photo.id} className="relative group">
                     <img
                       src={photo.photo_url}
-                      alt="Album photo"
-                      className="w-full aspect-square object-cover rounded-xl border border-warm-border"
+                      alt={`Photo ${idx + 1}`}
+                      className="w-full aspect-[4/3] object-cover rounded-xl border border-warm-border"
+                      style={{ imageRendering: 'high-quality' }}
                     />
+                    <span className="absolute bottom-1 right-1 bg-brown/60 text-white text-[9px] px-1.5 py-0.5 rounded-full font-sans opacity-0 group-hover:opacity-100 transition">
+                      {idx + 1}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -241,6 +245,9 @@ export default function AlbumBuilder() {
                 </p>
                 <p className="text-xs text-taupe font-sans">
                   Select multiple photos at once &middot; {remaining > 0 ? `${remaining} more needed` : 'You can add more if you like'}
+                </p>
+                <p className="text-[10px] text-taupe-light font-sans mt-1">
+                  Images are automatically enhanced to ultra-high resolution for print quality
                 </p>
               </label>
             </div>
