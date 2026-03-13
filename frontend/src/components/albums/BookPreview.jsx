@@ -150,8 +150,8 @@ function BackCover({ photoCount }) {
 function SpreadView({ left, right, theme }) {
   return (
     <div className="grid grid-cols-2 aspect-[2/1.3] sm:aspect-[2/1.2]">
-      {/* Left page */}
-      <div className="relative bg-white border-r border-warm-gray/30">
+      {/* Left page - full bleed photo */}
+      <div className="relative bg-white overflow-hidden">
         {left ? (
           <PhotoPage photo={left.photo} pageNum={left.pageNum} theme={theme} />
         ) : (
@@ -159,8 +159,8 @@ function SpreadView({ left, right, theme }) {
         )}
       </div>
 
-      {/* Right page */}
-      <div className="relative bg-white">
+      {/* Right page - full bleed photo */}
+      <div className="relative bg-white overflow-hidden">
         {right ? (
           <PhotoPage photo={right.photo} pageNum={right.pageNum} theme={theme} />
         ) : (
@@ -173,23 +173,21 @@ function SpreadView({ left, right, theme }) {
 
 function PhotoPage({ photo, pageNum, theme }) {
   return (
-    <div className="relative w-full h-full p-4 sm:p-8 flex flex-col">
-      {/* Doodle overlay behind photo */}
-      <DoodleOverlay theme={theme} className="absolute inset-0 w-full h-full opacity-30" />
-
-      {/* Photo frame */}
-      <div className="relative z-10 flex-1 flex items-center justify-center">
-        <div className="w-full h-full max-w-[85%] max-h-[85%] relative">
-          <img
-            src={photo.photo_url}
-            alt={`Page ${pageNum}`}
-            className="w-full h-full object-cover rounded-lg shadow-sm"
-          />
-        </div>
+    <div className="relative w-full h-full flex flex-col">
+      {/* Photo takes full page with very thin margin */}
+      <div className="relative z-10 flex-1 m-[3px] sm:m-1.5">
+        <img
+          src={photo.photo_url}
+          alt={`Page ${pageNum}`}
+          className="w-full h-full object-cover"
+          style={{ imageRendering: 'high-quality' }}
+        />
+        {/* Subtle doodle overlay on corners only */}
+        <DoodleOverlay theme={theme} className="absolute inset-0 w-full h-full opacity-15 pointer-events-none" />
       </div>
 
-      {/* Page number */}
-      <p className="relative z-10 text-center text-[10px] sm:text-xs text-taupe-light/60 font-sans mt-2">
+      {/* Page number - tiny, at bottom edge */}
+      <p className="absolute bottom-0.5 left-1/2 -translate-x-1/2 z-20 text-[8px] sm:text-[10px] text-white/50 font-sans drop-shadow-sm">
         {pageNum}
       </p>
     </div>
@@ -198,8 +196,9 @@ function PhotoPage({ photo, pageNum, theme }) {
 
 function EmptyPage({ theme }) {
   return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      <DoodleOverlay theme={theme} className="absolute inset-0 w-full h-full opacity-20" />
+    <div className="relative w-full h-full flex items-center justify-center bg-warm-white">
+      <DoodleOverlay theme={theme} className="absolute inset-0 w-full h-full opacity-15" />
+      <p className="text-taupe-light/30 text-xs font-sans italic">blank page</p>
     </div>
   );
 }

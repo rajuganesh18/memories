@@ -74,12 +74,29 @@ def upload_photo(
     filename = f"{uuid.uuid4()}{ext}"
     filepath = os.path.join(album_dir, filename)
 
-    # Read and compress image
+    # Read image — preserve ultra-high resolution (up to 4K)
     img = Image.open(file.file)
-    img.thumbnail((2048, 2048))
+
+    # Resize to fit within 4K bounds (3840×3840) while preserving aspect ratio
+    # Use LANCZOS resampling for the sharpest possible result
+    max_dim = 3840
+    if img.width > max_dim or img.height > max_dim:
+        img.thumbnail((max_dim, max_dim), Image.LANCZOS)
+
+    # Upscale small images to at least 2400px on the longest side for print quality
+    min_print_dim = 2400
+    longest = max(img.width, img.height)
+    if longest < min_print_dim:
+        scale = min_print_dim / longest
+        new_w = round(img.width * scale)
+        new_h = round(img.height * scale)
+        img = img.resize((new_w, new_h), Image.LANCZOS)
+
     if img.mode in ("RGBA", "P"):
         img = img.convert("RGB")
-    img.save(filepath, "JPEG", quality=85)
+
+    # Save at max quality for crisp output
+    img.save(filepath, "JPEG", quality=95, subsampling=0)
 
     photo_url = f"/uploads/{album_id}/{filename}"
     photo = AlbumPhoto(
